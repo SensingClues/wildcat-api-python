@@ -1,8 +1,6 @@
 import setuptools
-import os
-import sys
-
-
+from distutils.command.bdist import bdist as _bdist
+from distutils.command.sdist import sdist as _sdist
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -21,7 +19,6 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires = required,
     include_package_data=True,
-    package_dir = {'': 'package'},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
