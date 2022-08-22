@@ -81,7 +81,7 @@ class WildcatApi:
         r = self.api_call("post",url_addition, payload)
         cleaner = dataExtractor(r.json())
         cleaner.data = cleaner.extract_with_extractor(cleaner.data,"groups_extractor")
-        return cleaner
+        return cleaner.list_to_pd()
 
     def close_session(self):
         self.session.close()
@@ -138,6 +138,6 @@ class WildcatApi:
             if page_nbr == nbr_pages:
                 break
             page_nbr += 1
-        return dataExtractor(output_data)
+        return dataExtractor(output_data).list_to_pd()
 
 
