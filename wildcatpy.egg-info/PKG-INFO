@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: wildcatpy
-Version: 0.0.1
+Version: 0.0.2
 Summary: wildcatpy
 Home-page: https://github.com/jobvancreij/wildcat-api-test
 Author: sensing_clues
@@ -10,3 +10,5 @@ Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 
 #TEST
+
+Maken new wheel file:  python3 setup.py bdist_wheel 

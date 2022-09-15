@@ -24,6 +24,7 @@ def make_query(bounds=None,
                date_to=None,
                type_analysis=None,
                groups=None,
+               query_text = None,
                page_nbr=1,
                page_length=0,
                end_time = "T23:59:59-00:00", #if someone has to make very specific calls change this
@@ -39,6 +40,7 @@ def make_query(bounds=None,
     :param date_to: end date of the query
     :param type_analysis: for example ["Observation", "track"]
     :param groups: for example ["focus-project-7136973"]
+    :param query_text: for example entityId: 'exampleE
     :param page_nbr: Which page number to start (call will recalc page number when page_length is given)
     :param page_length: How many pages should a request contain
     :param end_time: For a timestamp for end_date, format = T00:00:00-00:00"
@@ -60,6 +62,7 @@ def make_query(bounds=None,
         (groups, ["filters", "dataSources"]),
         (page_nbr, ["options", "start"]),
         (page_length, ["options", "pageLength"]),
+        (query_text, ["filters", "queryText"])
     ]
 
     final_output = [_ for _ in output_prep if _[0] != None]  # only return non None vars

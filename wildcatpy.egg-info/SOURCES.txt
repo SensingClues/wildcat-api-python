@@ -2,6 +2,7 @@ README.md
 setup.py
 wildcatpy/__init__.py
 wildcatpy/api_calls.py
+wildcatpy/test.py
 wildcatpy.egg-info/PKG-INFO
 wildcatpy.egg-info/SOURCES.txt
 wildcatpy.egg-info/dependency_links.txt

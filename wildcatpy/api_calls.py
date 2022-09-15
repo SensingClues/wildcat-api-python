@@ -3,10 +3,11 @@
 
 import requests
 import json
+import geopandas
 from wildcatpy.src.helper_functions import *
 import pandas as pd
 from wildcatpy.src.cleaner import dataExtractor
-
+import io
 class WildcatApi:
     def __init__(self, user_name,password):
         """
@@ -139,5 +140,31 @@ class WildcatApi:
                 break
             page_nbr += 1
         return dataExtractor(output_data).list_to_pd()
+
+    def add_geojson_to_track(self, metadata_input: pd.DataFrame) -> pd.DataFrame:
+        """
+        Takes track metadata and adds geojson to it
+        :param track_metadata:
+        :return:
+        """
+        import copy
+        track_metadata = copy.copy(metadata_input) #make shallow copy from old dataframe
+        url_addition = "map/all/track/0/features/"
+        track_metadata["endWhen"] = pd.to_datetime(track_metadata["endWhen"], infer_datetime_format=True)
+        track_metadata["startWhen"] = pd.to_datetime(track_metadata["startWhen"], infer_datetime_format=True)
+        track_metadata["patrolDuration"] = round(
+            (track_metadata["endWhen"] - track_metadata["startWhen"])
+            / pd.Timedelta(hours=1), 3)
+        track_metadata["length"] = round(track_metadata["length"], 3)
+        unique_routes = track_metadata["entityId"].unique()  # only look through unique routes
+        for i, entity in enumerate(unique_routes):
+            payload = make_query(query_text=f"entityId:'{entity}'")
+            r = self.api_call("post", url_addition, payload)
+            new_df = geopandas.read_file(io.BytesIO(r.content))
+            if i == 0:
+                df = new_df
+            else:
+                df = pd.concat([df, new_df], ignore_index=True, sort=False)
+        return df.merge(track_metadata, how="right", left_on="EntityId", right_on="entityId")
 
 
