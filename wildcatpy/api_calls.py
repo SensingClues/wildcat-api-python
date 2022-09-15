@@ -148,7 +148,7 @@ class WildcatApi:
         :return:
         """
         import copy
-        track_metadata = copy.copy(metadata_input) #make shallow copy from old dataframe
+        track_metadata = copy.deepcopy(metadata_input) #make shallow copy from old dataframe
         url_addition = "map/all/track/0/features/"
         track_metadata["endWhen"] = pd.to_datetime(track_metadata["endWhen"], infer_datetime_format=True)
         track_metadata["startWhen"] = pd.to_datetime(track_metadata["startWhen"], infer_datetime_format=True)
