@@ -1,0 +1,15 @@
+{
+    "facets": {
+        "dataSources":
+        {
+            "facetValues":
+            {
+                "explode_values" : [
+                    "name",
+                    "count",
+                    "value"
+                ]
+            }
+        }
+    }
+}

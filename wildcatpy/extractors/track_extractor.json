@@ -1,0 +1,31 @@
+{
+        "extracted": {
+            "content": {
+                "0": {
+                    "headers":
+                    {
+                        "extract_values" : [
+                            "entityId",
+                            "entityType",
+                            "projectId",
+                            "projectName"
+                        ]}
+                   },
+                "1": {
+                    "GeoFeature":
+                    {
+                        "extract_values": [
+                            "featureType",
+                            "length",
+                            "startWhen",
+                            "endWhen"
+                        ],
+                        "agent":{
+                            "extract_values": ["agentName"]
+                    }
+                    }
+            }
+        }
+    }
+}
+
