@@ -35,7 +35,6 @@ class WildcatApi:
             "post": self.session.post,
             "get": self.session.get
         }
-        print(payload)
         r = request_trans[action](
                         url,
                         json=payload,
