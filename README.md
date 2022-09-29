@@ -1,10 +1,5 @@
-### Part 1: Install
-
-Command to make new wheel file
-```python
-python3 setup.py bdist_wheel 
-```
-How to pip install the github repo 
+## Part 1: Install
+#### Option 1: pip install (easier)
 - Get a personal acces token
   - Upper right corner of git click on picture
   - Go to settings
@@ -15,8 +10,14 @@ How to pip install the github repo
 ```python
 !python3 -m pip install git+https://<personal_access_token>@github.com/SensingClues/wildcat-api-python.git@main
 ```
+#### Option 2: Wheel file 
+Command to make new wheel file (only needed if we cannot pip install)
+```python
+python3 setup.py bdist_wheel 
+```
 
-### Part 2: Run code
+
+## Part 2: Run code
 
 #### 2.1: Login
 Make a variable that calls the WildcatApi with your username and password. 
