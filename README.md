@@ -17,7 +17,7 @@ python3 setup.py bdist_wheel
 ```
 
 
-## Part 2: Run code
+## Part 2: Run code (see demo_notebook.ipynb)
 
 #### 2.1: Login
 Make a variable that calls the WildcatApi with your username and password. 
