@@ -16,12 +16,9 @@ How to pip install the github repo
 !python3 -m pip install git+https://<personal_access_token>@github.com/SensingClues/wildcat-api-python.git@main
 ```
 
-<<<<<<< HEAD
-### Part 2: Run code
-=======
+
 
 ## Part 2: Run code (see demo_notebook.ipynb)
->>>>>>> b7bf865 (update readme)
 
 #### 2.1: Login
 Make a variable that calls the WildcatApi with your username and password. 
