@@ -11,14 +11,14 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name="wildcatpy",
-    version="0.0.2",
+    version="0.0.3",
     author="sensing_clues",
     author_email="sensingclues@typemail.com",
     description="wildcatpy",
     long_description=long_description,
     url="https://github.com/jobvancreij/wildcat-api-test",
     packages=setuptools.find_packages(),
-    #data_files=glob.glob('wildcatpy/extractors/**'),
+    data_files=glob.glob('wildcatpy/extractors/**'),
     install_requires = required,
     include_package_data=True,
     classifiers=[
