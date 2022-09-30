@@ -22,7 +22,6 @@ setuptools.setup(
     install_requires = required,
     include_package_data=True,
     package_data={'': ['extractors/*']},
-)
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
