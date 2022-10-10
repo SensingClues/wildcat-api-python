@@ -126,6 +126,8 @@ class WildcatApi:
                                date_from=from_date,
                                type_analysis=type_analysis,
                                groups=groups,
+                               page_length=_page_length,
+                               page_nbr=page_nbr,
                                **kwargs)
             print(query)
             r = self.api_call("post", "search/all/results", query)
