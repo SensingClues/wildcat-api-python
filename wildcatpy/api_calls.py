@@ -24,6 +24,7 @@ class WildcatApi:
                  payload = {}):
         """
         One function for a requests made so we only need to program logic once (catching errors etc)
+        
         :param action: Type of request, currently post or get
         :param url_addition: what to add to the base url
         :param payload: the payload that has to be send
@@ -53,6 +54,7 @@ class WildcatApi:
     def login(self,username,password):
         """
         Have to login before making requests
+
         :param username: Username for focus
         :param password: Passowrd for focus
         :return:
@@ -124,7 +126,10 @@ class WildcatApi:
                                date_from=from_date,
                                type_analysis=type_analysis,
                                groups=groups,
+                               page_length=_page_length,
+                               page_nbr=page_nbr,
                                **kwargs)
+            print(query)
             r = self.api_call("post", "search/all/results", query)
             if first_iter:
                 nbr_pages = math.ceil(r.json()["total"] / _page_length)
@@ -143,8 +148,9 @@ class WildcatApi:
     def add_geojson_to_track(self, metadata_input: pd.DataFrame) -> pd.DataFrame:
         """
         Takes track metadata and adds geojson to it
+
         :param track_metadata:
-        :return:
+        :return: geo data
         """
         import copy
         track_metadata = copy.deepcopy(metadata_input) #make shallow copy from old dataframe
