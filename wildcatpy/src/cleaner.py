@@ -62,7 +62,7 @@ class dataExtractor:
                 data = recurGet(data_for_extract, full_key)
                 all_extr_columns = extract_val["explode_values"]
                 if len(data) > 0:
-                    additional = [{col: row[col] for col in all_extr_columns} for row in data]
+                    additional = [{col: row[col] for col in all_extr_columns if row.get(col,False)} for row in data ]
         return [{**new_data, **add} for add in additional]
 
 

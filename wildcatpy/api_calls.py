@@ -129,7 +129,6 @@ class WildcatApi:
                                page_length=_page_length,
                                page_nbr=page_nbr,
                                **kwargs)
-            print(query)
             r = self.api_call("post", "search/all/results", query)
             if first_iter:
                 nbr_pages = math.ceil(r.json()["total"] / _page_length)
