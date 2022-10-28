@@ -72,6 +72,7 @@ def make_query(bounds=None,
     query = make_nested_dict(*final_output[0])  # init query with first row (no output_dict yet)
     for row in final_output[1:]:
         query = make_nested_dict(*row, query)  # loop for the rest, send output dict so it is updated
+    print(query)
     return query
 
 

@@ -101,6 +101,12 @@ class WildcatApi:
                                    type_analysis=["observation"],
                                    extractor_name="observation_extractor",
                                    )
+        # Extra filter implementation 
+        # If you filter  on concepts other concepts from an observation that had the 
+        # filtered concept are returned. So do another filtering 
+        concepts = params.get("bounds", None)
+        if concepts is not None:
+            df = df["concepts"].loc[df["concepts"] == concepts]
         return df
 
     def general_api_test(
