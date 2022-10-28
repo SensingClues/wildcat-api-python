@@ -104,7 +104,7 @@ class WildcatApi:
         # Extra filter implementation 
         # If you filter  on concepts other concepts from an observation that had the 
         # filtered concept are returned. So do another filtering 
-        concepts = params.get("bounds", None)
+        concepts = kwargs.get("bounds", None)
         if concepts is not None:
             df = df["concepts"].loc[df["concepts"] == concepts]
         return df
