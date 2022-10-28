@@ -11,7 +11,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name="wildcatpy",
-    version="0.0.9",
+    version="0.1.0",
     author="sensing_clues",
     author_email="sensingclues@typemail.com",
     description="wildcatpy",
