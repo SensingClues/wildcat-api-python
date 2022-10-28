@@ -8,6 +8,8 @@ from wildcatpy.src.helper_functions import *
 import pandas as pd
 from wildcatpy.src.cleaner import dataExtractor
 import io
+
+
 class WildcatApi:
     def __init__(self, user_name,password):
         """
@@ -96,6 +98,10 @@ class WildcatApi:
                                      )
 
     def observation_extractor(self, groups, **kwargs):
+        col_trans = {
+            "label": "conceptLabel"
+        }
+        
         df = self.general_api_test(groups,
                                    **kwargs,
                                    type_analysis=["observation"],
@@ -107,6 +113,7 @@ class WildcatApi:
         concepts = kwargs.get("concepts", None)
         if concepts is not None:
             df = df.loc[df["conceptId"] == concepts]
+        df = df.rename(columns=col_trans)
         return df
 
     def general_api_test(
