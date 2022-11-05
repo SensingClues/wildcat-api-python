@@ -6,13 +6,13 @@
 Welcome to wildcatpy's documentation!
 =====================================
 
-.. toctree::
-   :maxdepth: 3
-   :caption: Contents:
+Contents:
 
-   source/install
-   source/api_calls
-   source/denos
+.. toctree::
+
+    source/dev
+    source/user
+
 
 
 

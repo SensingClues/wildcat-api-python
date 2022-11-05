@@ -16,6 +16,10 @@ release = '0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+html_static_path = ['_static']
+def setup(app): #custom css is used to change the css used
+    app.add_css_file('css/custom.css')
+
 
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
