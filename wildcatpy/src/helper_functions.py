@@ -34,7 +34,10 @@ def make_query(bounds=None,
 
 
     """
-
+    Based on the input parameters this function makes a query. This function can be used by every
+    api call because it contains all the possible filters. However, you only need to fill in 
+    filters relevant for your query 
+    
     :param bounds: dict with coordinates {"north": 90, "south": 90, "west": 90,"east":90"}
     :param operator: The operator that will be put in the query, for example ["intersects"]
     :param date_from: start date for the query
@@ -72,7 +75,6 @@ def make_query(bounds=None,
     query = make_nested_dict(*final_output[0])  # init query with first row (no output_dict yet)
     for row in final_output[1:]:
         query = make_nested_dict(*row, query)  # loop for the rest, send output dict so it is updated
-    print(query)
     return query
 
 
@@ -91,28 +93,6 @@ def check_bounds(bounds: dict) -> dict:
     bounds["west"] = -179 if bounds["west"]  < -179 else bounds["west"]
     return bounds
 
-def find_values_to_extract(extractor,
-                           values_to_extract = None,
-                           full_key = None,
-                          ):
-    if values_to_extract == None:
-        values_to_extract = []
-    if full_key == None:
-        full_key = []
-    for key,value in extractor.items():
-        if key.isnumeric(): #check bc there can be integers
-            key = int(key)
-        if key == "extract_values":
-            values_to_extract.append({"full_key":full_key, "all_columns": value, "explode_values": []})
-        elif key == "explode_values":
-            values_to_extract.append({"full_key":full_key, "all_columns": [], "explode_values": value})
-
-        else:
-            new_key = full_key + [key]
-            values_to_extract.extend(find_values_to_extract(value,
-                                     full_key=new_key)
-                                    )
-    return values_to_extract
 
 def recurGet(d, ks):
     head, *tail = ks

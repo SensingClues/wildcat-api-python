@@ -1,15 +1,18 @@
 {
+  "cols_to_data": [
+
+  ],
+  "extractor": {
     "facets": {
-        "dataSources":
-        {
-            "facetValues":
-            {
-                "explode_values" : [
-                    "name",
-                    "count",
-                    "value"
-                ]
-            }
+      "dataSources": {
+        "facetValues": {
+          "explode_values": [
+            "name",
+            "count",
+            "value"
+          ]
         }
+      }
     }
+  }
 }
