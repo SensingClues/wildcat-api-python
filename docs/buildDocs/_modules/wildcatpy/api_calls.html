@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wildcatpy.api_calls &mdash; wildcatpy 0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildcatpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/dev.html">Dev info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/user.html">User info</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildcatpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wildcatpy.api_calls</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wildcatpy.api_calls</h1><div class="highlight"><pre>
+<span></span><span class="c1">#username = &quot;jobvancreij&quot;</span>
+<span class="c1">#password =</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">geopandas</span>
+<span class="kn">from</span> <span class="nn">wildcatpy.src.helper_functions</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">wildcatpy.src.cleaner</span> <span class="kn">import</span> <span class="n">dataCleaner</span>
+<span class="kn">from</span> <span class="nn">wildcatpy.src.data_extractor</span> <span class="kn">import</span> <span class="n">dataExtractor</span>
+<span class="kn">import</span> <span class="nn">io</span>
+
+
+<div class="viewcode-block" id="WildcatApi"><a class="viewcode-back" href="../../source/user/api_calls.html#wildcatpy.api_calls.WildcatApi">[docs]</a><span class="k">class</span> <span class="nc">WildcatApi</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class which can be used to extract sensing clues data </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span><span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Autoamtically login when initiate class</span>
+<span class="sd">        :param user_name: Username for focus</span>
+<span class="sd">        :param password: Password for focus</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="c1">#session object to share between calls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">user_name</span><span class="p">,</span><span class="n">password</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_api_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">action</span><span class="p">,</span>
+                 <span class="n">url_addition</span><span class="p">,</span>
+                 <span class="n">payload</span> <span class="o">=</span> <span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        One function for a requests made so we only need to program logic once (catching errors etc)</span>
+<span class="sd">        </span>
+<span class="sd">        :param action: Type of request, currently post or get</span>
+<span class="sd">        :param url_addition: what to add to the base url</span>
+<span class="sd">        :param payload: the payload that has to be send</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://focus.sensingclues.org/api/&quot;</span> <span class="o">+</span> <span class="n">url_addition</span>
+        <span class="n">request_trans</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;post&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">,</span>
+            <span class="s2">&quot;get&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span>
+        <span class="p">}</span>
+        <span class="c1"># extra args that have to be send</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Content-type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">payload</span><span class="p">:</span>  <span class="c1"># only add payload if it is not empty</span>
+            <span class="n">extra_args</span><span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">payload</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">request_trans</span><span class="p">[</span><span class="n">action</span><span class="p">](</span>
+            <span class="n">url</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">extra_args</span>
+        <span class="p">)</span>
+        <span class="c1"># add extra status codes</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span> <span class="k">pass</span> <span class="c1"># print(f&quot;req to {url} success&quot;)</span>
+        <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">204</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;req to </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">, sucessfull logout&quot;</span><span class="p">)</span> <span class="c1">#only seen by logout</span>
+        <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown url </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">405</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Check post/get for url </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknow error </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+
+
+<div class="viewcode-block" id="WildcatApi.login"><a class="viewcode-back" href="../../source/user/api_calls.html#wildcatpy.api_calls.WildcatApi.login">[docs]</a>    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">username</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span><span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Have to login before making requests. The login is done automatically </span>
+<span class="sd">        when initiating the class</span>
+<span class="sd">        </span>
+<span class="sd">        :param username: Username for focus</span>
+<span class="sd">        :param password: Passowrd for focus</span>
+<span class="sd">        :return: Api call result</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">url_addition</span> <span class="o">=</span> <span class="s2">&quot;auth/login&quot;</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span>
+            <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="n">password</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">,</span><span class="n">url_addition</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WildcatApi.logout"><a class="viewcode-back" href="../../source/user/api_calls.html#wildcatpy.api_calls.WildcatApi.logout">[docs]</a>    <span class="k">def</span> <span class="nf">logout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs the user out</span>
+
+<span class="sd">        :return: Api call result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url_addition</span> <span class="o">=</span> <span class="s2">&quot;auth/login&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">,</span><span class="n">url_addition</span><span class="p">,</span> <span class="p">{})</span></div>
+
+<div class="viewcode-block" id="WildcatApi.get_groups"><a class="viewcode-back" href="../../source/user/api_calls.html#wildcatpy.api_calls.WildcatApi.get_groups">[docs]</a>    <span class="k">def</span> <span class="nf">get_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to get the groups to which the user has access</span>
+<span class="sd">        :return: df with groups</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url_addition</span> <span class="o">=</span> <span class="s2">&quot;search/all/facets&quot;</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="n">make_query</span><span class="p">(</span>
+            <span class="n">date_from</span><span class="o">=</span> <span class="s2">&quot;1900-01-01&quot;</span><span class="p">,</span>
+            <span class="n">date_to</span><span class="o">=</span> <span class="s2">&quot;9999-12-31&quot;</span><span class="p">,</span>
+            <span class="n">type_analysis</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Observation&quot;</span><span class="p">,</span> <span class="s2">&quot;track&quot;</span><span class="p">],</span>
+            <span class="n">page_nbr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">page_length</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="n">url_addition</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+        <span class="n">extr</span> <span class="o">=</span> <span class="n">dataExtractor</span><span class="p">(</span><span class="s2">&quot;groups_extractor&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">extr</span><span class="o">.</span><span class="n">extr</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+        <span class="n">cleaner</span> <span class="o">=</span> <span class="n">dataCleaner</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cleaner</span><span class="o">.</span><span class="n">list_to_pd</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_close_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="WildcatApi.track_extractor"><a class="viewcode-back" href="../../source/user/api_calls.html#wildcatpy.api_calls.WildcatApi.track_extractor">[docs]</a>    <span class="k">def</span> <span class="nf">track_extractor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to acquire tracks data. </span>
+<span class="sd">        This function takes the **kwargs argument. This means that extra arguments can be </span>
+<span class="sd">        added. Those arguments are used to call subfunctions. The allowed extra arguments are added</span>
+<span class="sd">        in the parameters. The group argument is mandotory, the rest is optional</span>
+<span class="sd">    </span>
+<span class="sd">        :param groups: for example [&quot;focus-project-7136973&quot;]</span>
+<span class="sd">        :param bounds: dict with coordinates {&quot;north&quot;: 90, &quot;south&quot;: 90, &quot;west&quot;: 90,&quot;east&quot;:90&quot;}</span>
+<span class="sd">        :param operator: The operator that will be put in the query, for example [&quot;intersects&quot;]</span>
+<span class="sd">        :param date_from: start date for the query</span>
+<span class="sd">        :param date_to: end date of the query</span>
+<span class="sd">        :param type_analysis: for example [&quot;Observation&quot;, &quot;track&quot;]</span>
+<span class="sd">        :param query_text: for example entityId: &#39;exampleE</span>
+<span class="sd">        :param page_nbr: Which page number to start (call will recalc page number when page_length is given)</span>
+<span class="sd">        :param page_length: How many pages should a request contain</span>
+<span class="sd">        :param end_time: For a timestamp for end_date, format = T00:00:00-00:00&quot;</span>
+<span class="sd">        :param start_time:For a timestamp for start_date, format = T00:00:00-00:00&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterate_api</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                                     <span class="n">type_analysis</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;track&quot;</span><span class="p">],</span>
+                                     <span class="n">extractor_name</span><span class="o">=</span><span class="s2">&quot;track_extractor&quot;</span><span class="p">,</span>
+                                     <span class="p">)</span></div>
+
+<div class="viewcode-block" id="WildcatApi.observation_extractor"><a class="viewcode-back" href="../../source/user/api_calls.html#wildcatpy.api_calls.WildcatApi.observation_extractor">[docs]</a>    <span class="k">def</span> <span class="nf">observation_extractor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">groups</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span> 
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract observations </span>
+<span class="sd">        </span>
+<span class="sd">        This function takes the **kwargs argument. This means that extra arguments can be </span>
+<span class="sd">        added. Those arguments are used to call subfunctions. The allowed extra arguments are added</span>
+<span class="sd">        in the parameters. The group argument is mandotory, the rest is optional</span>
+<span class="sd">        </span>
+<span class="sd">        :param groups: for example [&quot;focus-project-7136973&quot;]</span>
+<span class="sd">        :param bounds: dict with coordinates {&quot;north&quot;: 90, &quot;south&quot;: 90, &quot;west&quot;: 90,&quot;east&quot;:90&quot;}</span>
+<span class="sd">        :param operator: The operator that will be put in the query, for example [&quot;intersects&quot;]</span>
+<span class="sd">        :param date_from: start date for the query</span>
+<span class="sd">        :param date_to: end date of the query</span>
+<span class="sd">        :param type_analysis: for example [&quot;Observation&quot;, &quot;track&quot;]</span>
+<span class="sd">        :param query_text: for example entityId: &#39;exampleE</span>
+<span class="sd">        :param page_nbr: Which page number to start (call will recalc page number when page_length is given)</span>
+<span class="sd">        :param page_length: How many pages should a request contain</span>
+<span class="sd">        :param end_time: For a timestamp for end_date, format = T00:00:00-00:00&quot;</span>
+<span class="sd">        :param start_time: For a timestamp for start_date, format = T00:00:00-00:00&quot;</span>
+<span class="sd">        :return: Df containing the observations according to the filters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">col_trans</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;conceptLabel&quot;</span>
+        <span class="p">}</span>
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterate_api</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                                   <span class="n">type_analysis</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;observation&quot;</span><span class="p">],</span>
+                                   <span class="n">extractor_name</span><span class="o">=</span><span class="s2">&quot;observation_extractor&quot;</span><span class="p">,</span>
+                                   <span class="p">)</span>
+        <span class="c1"># Extra filter implementation </span>
+        <span class="c1"># If you filter  on concepts other concepts from an observation that had the </span>
+        <span class="c1"># filtered concept are returned. So do another filtering </span>
+        <span class="n">concepts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;concepts&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">concepts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;conceptId&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">concepts</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_trans</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span></div>
+
+    <span class="k">def</span> <span class="nf">_iterate_api</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">groups</span><span class="p">,</span>
+            <span class="n">type_analysis</span><span class="p">,</span>
+            <span class="n">extractor_name</span><span class="p">,</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;north&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span> <span class="s2">&quot;east&quot;</span><span class="p">:</span> <span class="mi">180</span><span class="p">,</span> <span class="s2">&quot;west&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">179</span><span class="p">,</span> <span class="s2">&quot;south&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">89</span><span class="p">},</span>
+            <span class="n">from_date</span><span class="o">=</span><span class="s2">&quot;1900-01-01&quot;</span><span class="p">,</span>
+            <span class="n">to_date</span><span class="o">=</span><span class="s2">&quot;9999-12-31&quot;</span><span class="p">,</span>
+            <span class="n">_page_length</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span> <span class="c1">#extra args for make_query such as begin and end time</span>
+
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Iterates to df and makes calls &lt;-- update </span>
+<span class="sd">        </span>
+<span class="sd">        :param groups: Filter on the group </span>
+<span class="sd">        :param type_analysis: </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">extra_request</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">first_iter</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">page_nbr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">extr</span> <span class="o">=</span> <span class="n">dataExtractor</span><span class="p">(</span><span class="n">extractor_name</span><span class="p">)</span>
+        <span class="c1"># fix timestamp!!</span>
+        <span class="k">while</span> <span class="n">extra_request</span><span class="p">:</span> <span class="c1">#while loop so first call can directly be used</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">make_query</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+                               <span class="n">date_to</span><span class="o">=</span><span class="n">to_date</span><span class="p">,</span>
+                               <span class="n">date_from</span><span class="o">=</span><span class="n">from_date</span><span class="p">,</span>
+                               <span class="n">type_analysis</span><span class="o">=</span><span class="n">type_analysis</span><span class="p">,</span>
+                               <span class="n">groups</span><span class="o">=</span><span class="n">groups</span><span class="p">,</span>
+                               <span class="n">page_length</span><span class="o">=</span><span class="n">_page_length</span><span class="p">,</span>
+                               <span class="n">page_nbr</span><span class="o">=</span><span class="n">page_nbr</span><span class="p">,</span>
+                               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="s2">&quot;search/all/results&quot;</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">first_iter</span><span class="p">:</span>
+                <span class="n">nbr_pages</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;total&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_page_length</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">nbr_pages</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">extr</span><span class="o">.</span><span class="n">extr</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+            <span class="n">cleaner</span> <span class="o">=</span> <span class="n">dataCleaner</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">output_data</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cleaner</span><span class="o">.</span><span class="n">get_list_dict</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">page_nbr</span> <span class="o">==</span> <span class="n">nbr_pages</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">page_nbr</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">dataCleaner</span><span class="p">(</span><span class="n">output_data</span><span class="p">)</span><span class="o">.</span><span class="n">list_to_pd</span><span class="p">()</span>
+
+<div class="viewcode-block" id="WildcatApi.add_geojson_to_track"><a class="viewcode-back" href="../../source/user/api_calls.html#wildcatpy.api_calls.WildcatApi.add_geojson_to_track">[docs]</a>    <span class="k">def</span> <span class="nf">add_geojson_to_track</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata_input</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes track metadata and adds geojson to it</span>
+
+<span class="sd">        :param track_metadata: the output of the track_extractor function</span>
+<span class="sd">        :return: Df containing the tracks with the geojson</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">copy</span>
+        <span class="n">track_metadata</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">metadata_input</span><span class="p">)</span> <span class="c1">#make shallow copy from old dataframe</span>
+        <span class="n">url_addition</span> <span class="o">=</span> <span class="s2">&quot;map/all/track/0/features/&quot;</span>
+        <span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;endWhen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;endWhen&quot;</span><span class="p">],</span> <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;startWhen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;startWhen&quot;</span><span class="p">],</span> <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;patrolDuration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;endWhen&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;startWhen&quot;</span><span class="p">])</span>
+            <span class="o">/</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">unique_routes</span> <span class="o">=</span> <span class="n">track_metadata</span><span class="p">[</span><span class="s2">&quot;entityId&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>  <span class="c1"># only look through unique routes</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">unique_routes</span><span class="p">):</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">make_query</span><span class="p">(</span><span class="n">query_text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;entityId:&#39;</span><span class="si">{</span><span class="n">entity</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="n">url_addition</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+            <span class="n">new_df</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">new_df</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">new_df</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">track_metadata</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;EntityId&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;entityId&quot;</span><span class="p">)</span></div></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, sensing clues.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
