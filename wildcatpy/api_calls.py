@@ -230,7 +230,7 @@ class WildcatApi:
         """
         Takes track metadata and adds geojson to it
 
-        :param track_metadata: the output of the track_extractor function
+        :param track_metadata: the output of the track_extractor function 
         :return: Df containing the tracks with the geojson
         """
         import copy
