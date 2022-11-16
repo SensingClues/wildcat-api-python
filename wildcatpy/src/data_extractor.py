@@ -22,23 +22,27 @@ def extr_trans(extr, full_key=None):
             yield (full_key + [key], value)
 
 
-def extr_row(row, extr):
+def extr_row(row, extr,nested_col_names):
     extr_val, expl_val = {}, []
     for val in extr:
         *cols, type_extr = val["full_key"]  # get the columns to loop though and type lookup
+        nested_names = "_".join(cols)
         filt_data = recurGet(row, cols)  # extract everything till reach the level we start extracting
         find_cols = val["columns"]
         if type_extr == "extract_values":  # lookup type 1: Just simply get the variable
             extr_val = {**extr_val,
-                        **{key: filt_data.get(key, False) for key in find_cols}}
+                        **{nested_names + "_" + key if nested_col_names else key:
+                               filt_data.get(key, False) for key in find_cols}}
         # Lookup type 2 explode_values
         # This means that the cols give back a list 
         # Which contains a list of dictionaries. Those dictionaries should be exploded
         # We make a list of dictionaries with all the colums from the extracter that we can find
         # Later on those have to be exploded
         elif type_extr == "explode_values":
-            expl_val.extend([{col: row[col]
-                              for col in find_cols if row.get(col, False)}
+            # I use row.get(col,None) != None instead of row.get(col,False) because we can found a 0 which
+            # which is similar to False. So then we lose values
+            expl_val.extend([{nested_names + "_" + col if nested_col_names else col: row[col]
+                              for col in find_cols if row.get(col, None) != None}
                              for row in filt_data])
     # in case no exploded values need to be searched it cannot be empty
     # becasue the combination code would give an empty dict
@@ -91,7 +95,7 @@ class dataExtractor:
     def get_ext_clean(self, ext_raw):
         return [{"full_key": key, "columns": value} for key, value in extr_trans(ext_raw)]
 
-    def extr(self, data):
+    def extr(self, data,nested_col_names=False):
         """
 
         """
@@ -106,7 +110,7 @@ class dataExtractor:
             data = [data]
         # Iterate through dataset extract for every row
         # flatten with sum 
-        return sum([extr_row(row, self._ext_clean) for row in data], [])
+        return sum([extr_row(row, self._ext_clean,nested_col_names) for row in data], [])
 
 
 
