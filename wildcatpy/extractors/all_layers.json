@@ -1,0 +1,15 @@
+{
+  "cols_to_data": [],
+  "extractor": {
+    "extract_values": [
+      "pid"
+    ],
+    "layers": {
+      "explode_values": [
+        "id",
+        "name",
+        "geometryType"
+      ]
+    }
+  }
+}

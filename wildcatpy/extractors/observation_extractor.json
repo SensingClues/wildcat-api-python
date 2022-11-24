@@ -1,35 +1,42 @@
 {
-        "extracted": {
-            "content": {
-                "0": {
-                    "headers":
-                    {
-                        "extract_values" : [
-                            "entityId",
-                            "entityType",
-                            "entityName",
-                            "projectId",
-                            "projectName"
-
-                        ]}
-                   },
-                "1": {
-                    "Observation":
-                    {
-                        "extract_values": [
-                            "observationType",
-                            "when",
-                            "where"
-                        ],
-                        "concepts": {
-                            "explode_values": ["label", "conceptId"]
-                        },
-                        "agent":{
-                            "extract_values": ["agentName"]
-                    }
-                    }
+  "cols_to_data": [
+    "results"
+  ],
+  "extractor": {
+    "extracted": {
+      "content": {
+        "0": {
+          "headers": {
+            "extract_values": [
+              "entityId",
+              "entityType",
+              "entityName",
+              "projectId",
+              "projectName"
+            ]
+          }
+        },
+        "1": {
+          "Observation": {
+            "extract_values": [
+              "observationType",
+              "when",
+              "where"
+            ],
+            "concepts": {
+              "explode_values": [
+                "label",
+                "conceptId"
+              ]
+            },
+            "agent": {
+              "extract_values": [
+                "agentName"
+              ]
             }
+          }
         }
+      }
     }
+  }
 }
-

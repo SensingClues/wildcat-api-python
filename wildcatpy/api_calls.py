@@ -6,12 +6,17 @@ import json
 import geopandas
 from wildcatpy.src.helper_functions import *
 import pandas as pd
-from wildcatpy.src.cleaner import dataExtractor
+from wildcatpy.src.cleaner import dataCleaner
+from wildcatpy.src.data_extractor import dataExtractor
 import io
 
 
 class WildcatApi:
-    def __init__(self, user_name,password):
+    """
+    Class which can be used to extract sensing clues data 
+    
+    """
+    def __init__(self, user_name: str,password: str):
         """
         Autoamtically login when initiate class
         :param user_name: Username for focus
@@ -20,7 +25,7 @@ class WildcatApi:
         self.session = requests.Session() #session object to share between calls
         self.login(user_name,password)
 
-    def api_call(self,
+    def _api_call(self,
                  action,
                  url_addition,
                  payload = {}):
@@ -38,14 +43,19 @@ class WildcatApi:
             "post": self.session.post,
             "get": self.session.get
         }
-        r = request_trans[action](
-                        url,
-                        json=payload,
-                        headers = {'Content-type': 'application/json'}
-                       )
+        # extra args that have to be send
+        extra_args = {
+            "headers": {'Content-type': 'application/json'}
+        }
+        if payload:  # only add payload if it is not empty
+            extra_args["json"] = payload
 
+        r = request_trans[action](
+            url,
+            **extra_args
+        )
         # add extra status codes
-        if r.status_code == 200: print(f"req to {url} success")
+        if r.status_code == 200: pass # print(f"req to {url} success")
         elif r.status_code == 204: print(f"req to {url}, sucessfull logout") #only seen by logout
         elif r.status_code == 404: raise TypeError(f"unknown url {url}")
         elif r.status_code == 405: raise TypeError(f"Check post/get for url {url}")
@@ -53,13 +63,14 @@ class WildcatApi:
         return r
 
 
-    def login(self,username,password):
+    def login(self,username: str,password: str):
         """
-        Have to login before making requests
-
+        Have to login before making requests. The login is done automatically 
+        when initiating the class
+        
         :param username: Username for focus
         :param password: Passowrd for focus
-        :return:
+        :return: Api call result
         """
 
         url_addition = "auth/login"
@@ -67,13 +78,23 @@ class WildcatApi:
             'username': username,
             'password': password,
         }
-        return self.api_call("post",url_addition, payload)
+        return self._api_call("post",url_addition, payload)
 
     def logout(self):
-        url_addition = "auth/login"
-        return self.api_call("post",url_addition, {})
+        """
+        Logs the user out
 
-    def get_groups(self):
+        :return: Api call result
+
+        """
+        url_addition = "auth/logout"
+        return self._api_call("post",url_addition, {})
+
+    def get_groups(self) -> pd.DataFrame:
+        """
+        Function to get the groups to which the user has access
+        :return: df with groups
+        """
         url_addition = "search/all/facets"
         payload = make_query(
             date_from= "1900-01-01",
@@ -82,27 +103,70 @@ class WildcatApi:
             page_nbr=1,
             page_length=0
         )
-        r = self.api_call("post",url_addition, payload)
-        cleaner = dataExtractor(r.json())
-        cleaner.data = cleaner.extract_with_extractor(cleaner.data,"groups_extractor")
+        r = self._api_call("post", url_addition, payload)
+        extr = dataExtractor("groups_extractor")
+        data = extr.extr(r.json())
+        cleaner = dataCleaner(data)
         return cleaner.list_to_pd()
 
-    def close_session(self):
+    def _close_session(self):
         self.session.close()
 
     def track_extractor(self, groups, **kwargs):
-        return self.general_api_test(groups,
+
+        """
+        Function to acquire tracks data. 
+        This function takes the **kwargs argument. This means that extra arguments can be 
+        added. Those arguments are used to call subfunctions. The allowed extra arguments are added
+        in the parameters. The group argument is mandotory, the rest is optional
+    
+        :param groups: for example ["focus-project-7136973"]
+        :param bounds: dict with coordinates {"north": 90, "south": 90, "west": 90,"east":90"}
+        :param operator: The operator that will be put in the query, for example ["intersects"]
+        :param date_from: start date for the query
+        :param date_to: end date of the query
+        :param type_analysis: for example ["Observation", "track"]
+        :param query_text: for example entityId: 'exampleE
+        :param page_nbr: Which page number to start (call will recalc page number when page_length is given)
+        :param page_length: How many pages should a request contain
+        :param end_time: For a timestamp for end_date, format = T00:00:00-00:00"
+        :param start_time:For a timestamp for start_date, format = T00:00:00-00:00"
+
+        """
+        return self._iterate_api(groups,
                                      **kwargs,
                                      type_analysis=["track"],
                                      extractor_name="track_extractor",
                                      )
 
-    def observation_extractor(self, groups, **kwargs):
+    def observation_extractor(self,
+                              groups: str,
+                              **kwargs) -> pd.DataFrame: 
+        """
+        Extract observations 
+        
+        This function takes the **kwargs argument. This means that extra arguments can be 
+        added. Those arguments are used to call subfunctions. The allowed extra arguments are added
+        in the parameters. The group argument is mandotory, the rest is optional
+        
+        :param groups: for example ["focus-project-7136973"]
+        :param bounds: dict with coordinates {"north": 90, "south": 90, "west": 90,"east":90"}
+        :param operator: The operator that will be put in the query, for example ["intersects"]
+        :param date_from: start date for the query
+        :param date_to: end date of the query
+        :param type_analysis: for example ["Observation", "track"]
+        :param query_text: for example entityId: 'exampleE
+        :param page_nbr: Which page number to start (call will recalc page number when page_length is given)
+        :param page_length: How many pages should a request contain
+        :param end_time: For a timestamp for end_date, format = T00:00:00-00:00"
+        :param start_time: For a timestamp for start_date, format = T00:00:00-00:00"
+        :return: Df containing the observations according to the filters
+        """
         col_trans = {
             "label": "conceptLabel"
         }
         
-        df = self.general_api_test(groups,
+        df = self._iterate_api(groups,
                                    **kwargs,
                                    type_analysis=["observation"],
                                    extractor_name="observation_extractor",
@@ -116,7 +180,7 @@ class WildcatApi:
         df = df.rename(columns=col_trans)
         return df
 
-    def general_api_test(
+    def _iterate_api(
             self,
             groups,
             type_analysis,
@@ -128,10 +192,17 @@ class WildcatApi:
             **kwargs #extra args for make_query such as begin and end time
 
     ):
+        """
+        Iterates to df and makes calls <-- update 
+        
+        :param groups: Filter on the group 
+        :param type_analysis: 
+        """
         output_data = []
         extra_request = True
         first_iter = True
         page_nbr = 0
+        extr = dataExtractor(extractor_name)
         # fix timestamp!!
         while extra_request: #while loop so first call can directly be used
             query = make_query(bounds=bounds,
@@ -142,28 +213,25 @@ class WildcatApi:
                                page_length=_page_length,
                                page_nbr=page_nbr,
                                **kwargs)
-            print(query)
-            r = self.api_call("post", "search/all/results", query)
+            r = self._api_call("post", "search/all/results", query)
             if first_iter:
                 nbr_pages = math.ceil(r.json()["total"] / _page_length)
                 if nbr_pages == 0:
                     break
-            cleaner = dataExtractor(r.json())
-            cleaner.deeper_in_nested(["results"])
-            cleaner.iterate_extractor(extractor_name)
-            cleaner.flatten_data()
+            data = extr.extr(r.json())
+            cleaner = dataCleaner(data)
             output_data.extend(cleaner.get_list_dict())
             if page_nbr == nbr_pages:
                 break
             page_nbr += 1
-        return dataExtractor(output_data).list_to_pd()
+        return dataCleaner(output_data).list_to_pd()
 
     def add_geojson_to_track(self, metadata_input: pd.DataFrame) -> pd.DataFrame:
         """
         Takes track metadata and adds geojson to it
 
-        :param track_metadata:
-        :return: geo data
+        :param track_metadata: the output of the track_extractor function 
+        :return: Df containing the tracks with the geojson
         """
         import copy
         track_metadata = copy.deepcopy(metadata_input) #make shallow copy from old dataframe
@@ -177,7 +245,7 @@ class WildcatApi:
         unique_routes = track_metadata["entityId"].unique()  # only look through unique routes
         for i, entity in enumerate(unique_routes):
             payload = make_query(query_text=f"entityId:'{entity}'")
-            r = self.api_call("post", url_addition, payload)
+            r = self._api_call("post", url_addition, payload)
             new_df = geopandas.read_file(io.BytesIO(r.content))
             if i == 0:
                 df = new_df
