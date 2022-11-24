@@ -1,32 +1,15 @@
 {
-  "cols_to_data": [
-    "models"
-  ],
+  "cols_to_data": [],
   "extractor": {
-    "default": {
-      "extract_values": [
-        "name"
-      ],
-      "layers": {
-        "explode_values": [
-          "id",
-          "description",
-          "geometryType"
-        ]
-      }
-    },
-    "track": {
-      "extract_values": [
+    "extract_values": [
+      "pid"
+    ],
+    "layers": {
+      "explode_values": [
+        "id",
         "name",
-        "id"
-      ],
-      "layers": {
-        "explode_values": [
-          "id",
-          "description",
-          "geometryType"
-        ]
-      }
+        "geometryType"
+      ]
     }
   }
 }

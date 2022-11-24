@@ -87,7 +87,7 @@ class WildcatApi:
         :return: Api call result
 
         """
-        url_addition = "auth/login"
+        url_addition = "auth/logout"
         return self._api_call("post",url_addition, {})
 
     def get_groups(self) -> pd.DataFrame:
