@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WildcatApi &mdash; wildcatpy 0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Demo" href="demo.html" />
+    <link rel="prev" title="Install info" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildcatpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../dev.html">Dev info</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../user.html">User info</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="install.html">Install info</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">WildcatApi</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#info">Info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-information">Code information</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wildcatpy.api_calls.WildcatApi"><code class="docutils literal notranslate"><span class="pre">WildcatApi</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="demo.html">Demo</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildcatpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../user.html">User info</a> &raquo;</li>
+      <li>WildcatApi</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/user/api_calls.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="wildcatapi">
+<h1>WildcatApi<a class="headerlink" href="#wildcatapi" title="Permalink to this heading"></a></h1>
+<section id="info">
+<h2>Info<a class="headerlink" href="#info" title="Permalink to this heading"></a></h2>
+<div class="line-block">
+<div class="line">This document contains all the functions that can be called by the api.</div>
+</div>
+<ul class="simple">
+<li><p>Blue box is the class</p></li>
+<li><p>grey box are the function you can call on the class</p></li>
+</ul>
+<div class="line-block">
+<div class="line">The api is a class that has to be initalized. Initializing this class is done with the user_name and password.
+Afterwards, you can use this class to call the different functions. Moreover,</div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">api</span> <span class="o">=</span> <span class="n">WildcatApi</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="n">password</span><span class="p">)</span> <span class="c1"># initialize</span>
+<span class="n">api</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span> <span class="c1"># get group data</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line">For any questions please contact …..</div>
+</div>
+</section>
+<section id="code-information">
+<h2>Code information<a class="headerlink" href="#code-information" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="wildcatpy.api_calls.WildcatApi">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wildcatpy.api_calls.</span></span><span class="sig-name descname"><span class="pre">WildcatApi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wildcatpy/api_calls.html#WildcatApi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wildcatpy.api_calls.WildcatApi" title="Permalink to this definition"></a></dt>
+<dd><p>Class which can be used to extract sensing clues data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>user_name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>password</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wildcatpy.api_calls.WildcatApi.add_geojson_to_track">
+<span class="sig-name descname"><span class="pre">add_geojson_to_track</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wildcatpy/api_calls.html#WildcatApi.add_geojson_to_track"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wildcatpy.api_calls.WildcatApi.add_geojson_to_track" title="Permalink to this definition"></a></dt>
+<dd><p>Takes track metadata and adds geojson to it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>track_metadata</strong> – the output of the track_extractor function</p></li>
+<li><p><strong>metadata_input</strong> (<em>DataFrame</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Df containing the tracks with the geojson</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><em>DataFrame</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wildcatpy.api_calls.WildcatApi.get_groups">
+<span class="sig-name descname"><span class="pre">get_groups</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wildcatpy/api_calls.html#WildcatApi.get_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wildcatpy.api_calls.WildcatApi.get_groups" title="Permalink to this definition"></a></dt>
+<dd><p>Function to get the groups to which the user has access
+:return: df with groups</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><em>DataFrame</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wildcatpy.api_calls.WildcatApi.login">
+<span class="sig-name descname"><span class="pre">login</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wildcatpy/api_calls.html#WildcatApi.login"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wildcatpy.api_calls.WildcatApi.login" title="Permalink to this definition"></a></dt>
+<dd><p>Have to login before making requests. The login is done automatically 
+when initiating the class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – Username for focus</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – Passowrd for focus</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Api call result</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wildcatpy.api_calls.WildcatApi.logout">
+<span class="sig-name descname"><span class="pre">logout</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wildcatpy/api_calls.html#WildcatApi.logout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wildcatpy.api_calls.WildcatApi.logout" title="Permalink to this definition"></a></dt>
+<dd><p>Logs the user out</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Api call result</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wildcatpy.api_calls.WildcatApi.observation_extractor">
+<span class="sig-name descname"><span class="pre">observation_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">groups</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wildcatpy/api_calls.html#WildcatApi.observation_extractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wildcatpy.api_calls.WildcatApi.observation_extractor" title="Permalink to this definition"></a></dt>
+<dd><p>Extract observations</p>
+<p>This function takes the <a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs argument. This means that extra arguments can be 
+added. Those arguments are used to call subfunctions. The allowed extra arguments are added
+in the parameters. The group argument is mandotory, the rest is optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>groups</strong> (<em>str</em>) – for example [“focus-project-7136973”]</p></li>
+<li><p><strong>bounds</strong> – dict with coordinates {“north”: 90, “south”: 90, “west”: 90,”east”:90”}</p></li>
+<li><p><strong>operator</strong> – The operator that will be put in the query, for example [“intersects”]</p></li>
+<li><p><strong>date_from</strong> – start date for the query</p></li>
+<li><p><strong>date_to</strong> – end date of the query</p></li>
+<li><p><strong>type_analysis</strong> – for example [“Observation”, “track”]</p></li>
+<li><p><strong>query_text</strong> – for example entityId: ‘exampleE</p></li>
+<li><p><strong>page_nbr</strong> – Which page number to start (call will recalc page number when page_length is given)</p></li>
+<li><p><strong>page_length</strong> – How many pages should a request contain</p></li>
+<li><p><strong>end_time</strong> – For a timestamp for end_date, format = T00:00:00-00:00”</p></li>
+<li><p><strong>start_time</strong> – For a timestamp for start_date, format = T00:00:00-00:00”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Df containing the observations according to the filters</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><em>DataFrame</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wildcatpy.api_calls.WildcatApi.track_extractor">
+<span class="sig-name descname"><span class="pre">track_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">groups</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wildcatpy/api_calls.html#WildcatApi.track_extractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wildcatpy.api_calls.WildcatApi.track_extractor" title="Permalink to this definition"></a></dt>
+<dd><p>Function to acquire tracks data. 
+This function takes the <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs argument. This means that extra arguments can be 
+added. Those arguments are used to call subfunctions. The allowed extra arguments are added
+in the parameters. The group argument is mandotory, the rest is optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>groups</strong> – for example [“focus-project-7136973”]</p></li>
+<li><p><strong>bounds</strong> – dict with coordinates {“north”: 90, “south”: 90, “west”: 90,”east”:90”}</p></li>
+<li><p><strong>operator</strong> – The operator that will be put in the query, for example [“intersects”]</p></li>
+<li><p><strong>date_from</strong> – start date for the query</p></li>
+<li><p><strong>date_to</strong> – end date of the query</p></li>
+<li><p><strong>type_analysis</strong> – for example [“Observation”, “track”]</p></li>
+<li><p><strong>query_text</strong> – for example entityId: ‘exampleE</p></li>
+<li><p><strong>page_nbr</strong> – Which page number to start (call will recalc page number when page_length is given)</p></li>
+<li><p><strong>page_length</strong> – How many pages should a request contain</p></li>
+<li><p><strong>end_time</strong> – For a timestamp for end_date, format = T00:00:00-00:00”</p></li>
+</ul>
+</dd>
+</dl>
+<p>:param start_time:For a timestamp for start_date, format = T00:00:00-00:00”</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-left" title="Install info" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="demo.html" class="btn btn-neutral float-right" title="Demo" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, sensing clues.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
