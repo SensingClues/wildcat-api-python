@@ -48,7 +48,10 @@
 <li class="toctree-l2"><a class="reference internal" href="../source/dev/all_code.html">Main module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../source/dev/all_code.html#sub-modules">Sub modules</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../source/dev/making_new_api.html">How to make new api</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">How to make api</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">How to make api</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Part-2">Part 2</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../source/dev/unit_test.html">Unit testing</a></li>
@@ -365,46 +368,18 @@ div.rendered_html tbody tr:hover {
 <section id="How-to-make-api">
 <h1>How to make api<a class="headerlink" href="#How-to-make-api" title="Permalink to this heading"></a></h1>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">wildcatpy.api_calls</span> <span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">username</span> <span class="o">=</span> <span class="s2">&quot;jobvancreij&quot;</span>
-<span class="n">password</span> <span class="o">=</span> <span class="s2">&quot;&lt;password&gt;&quot;</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">api_call</span> <span class="o">=</span> <span class="n">WildcatApi</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="n">password</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># with this private func we can make a call so we can test new api&#39;s</span>
-
-<span class="n">add</span> <span class="o">=</span> <span class="s2">&quot;/map/all/describe&quot;</span> <span class="c1"># this is what has to be added to standard -&gt;https://focus.sensingclues.org/api/</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">api_call</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="p">{})</span>
-</pre></div>
-</div>
-</div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;models&quot;</span><span class="p">][</span><span class="s2">&quot;track&quot;</span><span class="p">])</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>python3 -m pip install python-dotenv
 </pre></div>
 </div>
 </div>
@@ -413,7 +388,1040 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;id&#39;: &#39;track&#39;, &#39;name&#39;: &#39;track&#39;, &#39;description&#39;: &#39;Track layers&#39;, &#39;layers&#39;: [{&#39;id&#39;: 0, &#39;name&#39;: &#39;Tracks&#39;, &#39;description&#39;: &#39;All MultiPoint geometries for Track&#39;, &#39;geometryType&#39;: &#39;MultiPoint&#39;}]}
+Requirement already satisfied: python-dotenv in /usr/local/lib/python3.10/site-packages (0.21.0)
+
+<span class="ansi-bold">[</span><span class="ansi-blue-fg">notice</span><span class="ansi-bold">]</span> A new release of pip available: <span class="ansi-red-fg">22.2.2</span> -&gt; <span class="ansi-green-fg">22.3.1</span>
+<span class="ansi-bold">[</span><span class="ansi-blue-fg">notice</span><span class="ansi-bold">]</span> To update, run: <span class="ansi-green-fg">python3.10 -m pip install --upgrade pip</span>
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="n">load_dotenv</span><span class="p">()</span>
+
+<span class="n">username</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;USERNAME&quot;</span><span class="p">)</span> <span class="c1"># you can also type your password here manually</span>
+<span class="n">password</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;PASSWORD&#39;</span><span class="p">)</span> <span class="c1"># You can also type your username here manually</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">api_call</span> <span class="o">=</span> <span class="n">WildcatApi</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="n">password</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># with this private func we can make a call so we can test new api&#39;s</span>
+
+<span class="n">add</span> <span class="o">=</span> <span class="s2">&quot;/map/all/describe&quot;</span> <span class="c1"># this is what has to be added to standard -&gt;https://focus.sensingclues.org/api/</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">api_call</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;$version&#39;: &#39;1.3.3-beta&#39;, &#39;models&#39;: {&#39;9999&#39;: {&#39;id&#39;: &#39;9999&#39;, &#39;name&#39;: &#39;9999&#39;, &#39;description&#39;: &#39;Creekish mountains Upload&#39;, &#39;layers&#39;: [{&#39;id&#39;: 0, &#39;name&#39;: &#39;test_polygon&#39;, &#39;description&#39;: &#39;All Polygon geometries for layer test_polygon&#39;, &#39;geometryType&#39;: &#39;Polygon&#39;}, {&#39;id&#39;: 1, &#39;name&#39;: &#39;test_multipolygon&#39;, &#39;description&#39;: &#39;All MultiPolygon geometries for layer test_multipolygon&#39;, &#39;geometryType&#39;: &#39;MultiPolygon&#39;}]}, &#39;track&#39;: {&#39;id&#39;: &#39;track&#39;, &#39;name&#39;: &#39;track&#39;, &#39;description&#39;: &#39;Track layers&#39;, &#39;layers&#39;: [{&#39;id&#39;: 0, &#39;name&#39;: &#39;Tracks&#39;, &#39;description&#39;: &#39;All MultiPoint geometries for Track&#39;, &#39;geometryType&#39;: &#39;MultiPoint&#39;}]}, &#39;default&#39;: {&#39;id&#39;: &#39;default&#39;, &#39;name&#39;: &#39;default&#39;, &#39;description&#39;: &#39;Default Entity layers&#39;, &#39;layers&#39;: [{&#39;id&#39;: 0, &#39;name&#39;: &#39;Observations&#39;, &#39;description&#39;: &#39;All Point geometries for Observations&#39;, &#39;geometryType&#39;: &#39;Point&#39;}, {&#39;id&#39;: 1, &#39;name&#39;: &#39;Tracks&#39;, &#39;description&#39;: &#39;All Point geometries for Track&#39;, &#39;geometryType&#39;: &#39;Point&#39;}, {&#39;id&#39;: 2, &#39;name&#39;: &#39;Agents&#39;, &#39;description&#39;: &#39;All Point geometries for Agent&#39;, &#39;geometryType&#39;: &#39;Point&#39;}]}}}
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># this is the json file I made to extract the correct values</span>
+<span class="c1"># What it does it it goes deeper in the dict (models) and starts looping if possible</span>
+<span class="c1"># Per row it will extract the values in the extract_values argument</span>
+<span class="c1"># It will explode every row with values that are in the explode_values</span>
+<span class="c1"># What happens now it makes a new row for the default and for the tracks</span>
+<span class="c1"># But both are containing the extract_values</span>
+<span class="c1"># We fix this afterwards by filtering. Normally we don&#39;t want seperated rows when exploding muliple times</span>
+<span class="p">{</span>
+  <span class="s2">&quot;cols_to_data&quot;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="s2">&quot;extractor&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;extract_values&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="s2">&quot;pid&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;layers&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;explode_values&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;geometryType&quot;</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;cols_to_data&#39;: [],
+ &#39;extractor&#39;: {&#39;extract_values&#39;: [&#39;pid&#39;],
+  &#39;layers&#39;: {&#39;explode_values&#39;: [&#39;id&#39;, &#39;name&#39;, &#39;geometryType&#39;]}}}
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># small change because the extractor needs a list from which it can start extracting</span>
+<span class="c1"># The input data is a dict from which the key(pid) gives a dict with the info</span>
+<span class="c1"># So we convert the dict to a list of dicts and add the pid as item in the list</span>
+<span class="c1"># Then we can start iterating through this with the extractor beause it is the same strcuture as other calls</span>
+<span class="n">new_output</span> <span class="o">=</span> <span class="p">[{</span><span class="o">**</span><span class="p">{</span><span class="s2">&quot;pid&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">},</span> <span class="o">**</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;models&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]}</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;models&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">extr</span> <span class="o">=</span> <span class="n">dataExtractor</span><span class="p">(</span><span class="s2">&quot;all_layers&quot;</span><span class="p">)</span>
+<span class="n">extr_output</span> <span class="o">=</span> <span class="n">extr</span><span class="o">.</span><span class="n">extr</span><span class="p">(</span><span class="n">new_output</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">col_trans</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;lid&quot;</span>
+<span class="p">}</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">extr_output</span><span class="p">)</span>\
+       <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_trans</span><span class="p">)</span>\
+       <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;pid != &#39;track&#39; and pid != &#39;default&#39;&quot;</span><span class="p">)</span>
+<span class="c1">#df = df.loc[~df[&quot;pid&quot;].isin([&quot;track&quot;, &quot;default&quot;])]</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>pid</th>
+      <th>lid</th>
+      <th>name</th>
+      <th>geometryType</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>9999</td>
+      <td>0</td>
+      <td>test_polygon</td>
+      <td>Polygon</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>9999</td>
+      <td>1</td>
+      <td>test_multipolygon</td>
+      <td>MultiPolygon</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># this is a very simple one so we just make a standard private function in the class</span>
+<span class="c1"># This should be a private function because it is only used by other functions and not by the users</span>
+<span class="c1"># Private means that you start the function with a _  (also not visible in documenation by user then)</span>
+
+<span class="c1"># To test this new function we extend the WildcatAPi Class</span>
+<span class="c1"># Then we make the variable url_addition</span>
+<span class="c1"># Then use the _api_call function and provide the type request, url_addition and payload if needed</span>
+<span class="c1"># This function returns all the models</span>
+<span class="c1"># Normally we use an extraction but since this function returns almost everything it is not needed.</span>
+<span class="c1"># If the function works here you can implement it in the api_calls.py</span>
+
+<span class="k">class</span> <span class="nc">testNewAPi</span><span class="p">(</span><span class="n">WildcatApi</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_all_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">col_trans</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;lid&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;layerName&quot;</span>
+                <span class="p">}</span>
+        <span class="n">url_addition</span> <span class="o">=</span> <span class="s2">&quot;/map/all/describe&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">url_addition</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">new_output</span> <span class="o">=</span> <span class="p">[{</span><span class="o">**</span><span class="p">{</span><span class="s2">&quot;pid&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">},</span> <span class="o">**</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;models&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]}</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;models&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="n">extr</span> <span class="o">=</span> <span class="n">dataExtractor</span><span class="p">(</span><span class="s2">&quot;all_layers&quot;</span><span class="p">)</span>
+        <span class="n">extr_output</span> <span class="o">=</span> <span class="n">extr</span><span class="o">.</span><span class="n">extr</span><span class="p">(</span><span class="n">new_output</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">extr_output</span><span class="p">)</span>\
+                 <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_trans</span><span class="p">)</span>\
+                 <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;pid != &#39;track&#39; and pid != &#39;default&#39;&quot;</span><span class="p">)</span>
+<br/><br/></pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># run test if it works</span>
+<span class="c1"># if so we can implement it</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">testNewAPi</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="n">password</span><span class="p">)</span>
+<span class="n">test</span><span class="o">.</span><span class="n">_get_all_layers</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>pid</th>
+      <th>lid</th>
+      <th>layerName</th>
+      <th>geometryType</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>9999</td>
+      <td>0</td>
+      <td>test_polygon</td>
+      <td>Polygon</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>9999</td>
+      <td>1</td>
+      <td>test_multipolygon</td>
+      <td>MultiPolygon</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;cols_to_data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">],</span>
+  <span class="s2">&quot;extractor&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;extract_values&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="s2">&quot;geometry&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;id&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;properties&quot;</span>
+    <span class="p">]</span>
+
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;cols_to_data&#39;: [&#39;features&#39;],
+ &#39;extractor&#39;: {&#39;extract_values&#39;: [&#39;geometry&#39;, &#39;type&#39;, &#39;id&#39;, &#39;properties&#39;]}}
+</pre></div></div>
+</div>
+<section id="Part-2">
+<h2>Part 2<a class="headerlink" href="#Part-2" title="Permalink to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#call again</span>
+<span class="c1"># with this private func we can make a call so we can test new api&#39;s</span>
+<span class="n">project_id</span> <span class="o">=</span> <span class="mi">8950</span>
+<span class="n">layer_id</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">add</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;/map/all/</span><span class="si">{</span><span class="n">project_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">/features/&quot;</span> <span class="c1"># this is what has to be added to standard -&gt;https://focus.sensingclues.org/api/</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">api_call</span><span class="o">.</span><span class="n">_api_call</span><span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">extr</span> <span class="o">=</span> <span class="n">dataExtractor</span><span class="p">(</span><span class="s2">&quot;layer_details&quot;</span><span class="p">)</span>
+<span class="n">extr_output</span> <span class="o">=</span> <span class="n">extr</span><span class="o">.</span><span class="n">extr</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">nested_col_names</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;type&#39;: &#39;Feature&#39;,
+ &#39;Id&#39;: &#39;181944078&#39;,
+ &#39;properties&#39;: {&#39;DocId&#39;: &#39;/GeoFeature/G8950-4351274340491204675-1.json&#39;,
+  &#39;ShortId&#39;: &#39;181944078&#39;,
+  &#39;OBJECTID&#39;: &#39;181944078&#39;,
+  &#39;EntityId&#39;: &#39;G8950-4351274340491204675-1&#39;,
+  &#39;Id&#39;: &#39;181944078&#39;,
+  &#39;name&#39;: &#39;Bachuma Graziers&#39;,
+  &#39;Shape_Leng&#39;: &#39;31710.3250861&#39;,
+  &#39;Shape_Area&#39;: &#39;41542671.9075&#39;,
+  &#39;name_2&#39;: &#39;LMD&#39;,
+  &#39;shape_le_1&#39;: &#39;35319.0690104&#39;,
+  &#39;shape_ar_1&#39;: &#39;44051493.9094&#39;,
+  &#39;id_2&#39;: &#39;0&#39;,
+  &#39;Area&#39;: &#39;0&#39;,
+  &#39;Acre&#39;: &#39;0&#39;,
+  &#39;Hectare&#39;: &#39;0&#39;,
+  &#39;shape_le_2&#39;: &#39;83909.5919082&#39;,
+  &#39;shape_ar_2&#39;: &#39;301557600.749&#39;,
+  &#39;Names&#39;: None},
+ &#39;geometry&#39;: {&#39;type&#39;: &#39;MultiPolygon&#39;,
+  &#39;coordinates&#39;: [[[[38.83568, -3.7024],
+     [38.83568, -3.7024],
+     [38.83568, -3.7024],
+     [38.83568, -3.7024],
+     [38.83568, -3.7024]]]]}}
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gpd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">extr_output</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>_type</th>
+      <th>_Id</th>
+      <th>geometry_type</th>
+      <th>geometry_coordinates</th>
+      <th>properties_DocId</th>
+      <th>properties_ShortId</th>
+      <th>properties_OBJECTID</th>
+      <th>properties_EntityId</th>
+      <th>properties_Id</th>
+      <th>properties_name</th>
+      <th>...</th>
+      <th>properties_name_2</th>
+      <th>properties_shape_le_1</th>
+      <th>properties_shape_ar_1</th>
+      <th>properties_id_2</th>
+      <th>properties_Area</th>
+      <th>properties_Acre</th>
+      <th>properties_Hectare</th>
+      <th>properties_shape_le_2</th>
+      <th>properties_shape_ar_2</th>
+      <th>properties_Names</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Feature</td>
+      <td>181944078</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.83568, -3.7024], [38.83568, -3.7024], [...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-1.json</td>
+      <td>181944078</td>
+      <td>181944078</td>
+      <td>G8950-4351274340491204675-1</td>
+      <td>181944078</td>
+      <td>Bachuma Graziers</td>
+      <td>...</td>
+      <td>LMD</td>
+      <td>35319.0690104</td>
+      <td>44051493.9094</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>83909.5919082</td>
+      <td>301557600.749</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Feature</td>
+      <td>136949067</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.86825, -3.9845], [38.80027, -4.01189], ...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-10.json</td>
+      <td>136949067</td>
+      <td>136949067</td>
+      <td>G8950-4351274340491204675-10</td>
+      <td>136949067</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>30505.6573528</td>
+      <td>55268230.5007</td>
+      <td>Dawida</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Feature</td>
+      <td>93794630</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.9799, -3.8876], [38.95808, -3.93669], [...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-11.json</td>
+      <td>93794630</td>
+      <td>93794630</td>
+      <td>G8950-4351274340491204675-11</td>
+      <td>93794630</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>52727.9566204</td>
+      <td>105948252.961</td>
+      <td>Kambanga</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Feature</td>
+      <td>50640194</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.60494, -3.94115], [38.60308, -3.94266],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-12.json</td>
+      <td>50640194</td>
+      <td>50640194</td>
+      <td>G8950-4351274340491204675-12</td>
+      <td>50640194</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>3</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>64208.444143</td>
+      <td>214464774.168</td>
+      <td>Kasigau</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Feature</td>
+      <td>7485757</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.63248, -3.71275], [38.5959, -3.74155], ...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-13.json</td>
+      <td>7485757</td>
+      <td>7485757</td>
+      <td>G8950-4351274340491204675-13</td>
+      <td>7485757</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>4</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>61148.1238153</td>
+      <td>216654799.741</td>
+      <td>Maungu</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>Feature</td>
+      <td>393828050</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.55868, -3.63515], [38.43789, -3.7139], ...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-14.json</td>
+      <td>393828050</td>
+      <td>393828050</td>
+      <td>G8950-4351274340491204675-14</td>
+      <td>393828050</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>5</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>73531.3442841</td>
+      <td>212443232.428</td>
+      <td>Mgeno</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Feature</td>
+      <td>350673613</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.67465, -3.48646], [38.69489, -3.50914],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-15.json</td>
+      <td>350673613</td>
+      <td>350673613</td>
+      <td>G8950-4351274340491204675-15</td>
+      <td>350673613</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>6</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>23080.3503058</td>
+      <td>18550156.4601</td>
+      <td>Ndara</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>Feature</td>
+      <td>307519176</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.93886, -3.68704], [38.94253, -3.7031], ...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-16.json</td>
+      <td>307519176</td>
+      <td>307519176</td>
+      <td>G8950-4351274340491204675-16</td>
+      <td>307519176</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>7</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>84023.1507562</td>
+      <td>409022474.063</td>
+      <td>Taita</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>Feature</td>
+      <td>264364740</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.81494, -3.60187], [38.8495, -3.62182], ...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-17.json</td>
+      <td>264364740</td>
+      <td>264364740</td>
+      <td>G8950-4351274340491204675-17</td>
+      <td>264364740</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>18034.4184896</td>
+      <td>20319283.1318</td>
+      <td>Wangala</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>Feature</td>
+      <td>221210303</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.80027, -4.01189], [38.69151, -4.05298],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-18.json</td>
+      <td>221210303</td>
+      <td>221210303</td>
+      <td>G8950-4351274340491204675-18</td>
+      <td>221210303</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>52879.5289938</td>
+      <td>136987903.991</td>
+      <td>Washumbu</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>Feature</td>
+      <td>178055866</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.6553, -3.50696], [38.69489, -3.50914], ...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-19.json</td>
+      <td>178055866</td>
+      <td>178055866</td>
+      <td>G8950-4351274340491204675-19</td>
+      <td>178055866</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>10</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>68658.7943485</td>
+      <td>171217866.815</td>
+      <td>Sagalla</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>Feature</td>
+      <td>138789642</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.84098, -3.69404], [38.8358, -3.7025], [...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-2.json</td>
+      <td>138789642</td>
+      <td>138789642</td>
+      <td>G8950-4351274340491204675-2</td>
+      <td>138789642</td>
+      <td>Bachuma Graziers</td>
+      <td>...</td>
+      <td>LMD</td>
+      <td>35319.0690104</td>
+      <td>44051493.9094</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>Feature</td>
+      <td>39229677</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.79244, -3.58106], [38.79254, -3.58112],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-20.json</td>
+      <td>39229677</td>
+      <td>39229677</td>
+      <td>G8950-4351274340491204675-20</td>
+      <td>39229677</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>11</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>5933.0520506</td>
+      <td>1563462.93747</td>
+      <td>Corridor_link</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>Feature</td>
+      <td>425571970</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.29736, -3.63104], [38.35962, -3.64761],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-21.json</td>
+      <td>425571970</td>
+      <td>425571970</td>
+      <td>G8950-4351274340491204675-21</td>
+      <td>425571970</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>13</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>30259.0381121</td>
+      <td>53047087.356</td>
+      <td>Kutima</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>Feature</td>
+      <td>382417533</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.37393, -3.64864], [38.38037, -3.64911],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-22.json</td>
+      <td>382417533</td>
+      <td>382417533</td>
+      <td>G8950-4351274340491204675-22</td>
+      <td>382417533</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>14</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>29367.8169499</td>
+      <td>51304400.835</td>
+      <td>Choke</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>Feature</td>
+      <td>339263097</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.70428, -3.65056], [38.70539, -3.65062],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-23.json</td>
+      <td>339263097</td>
+      <td>339263097</td>
+      <td>G8950-4351274340491204675-23</td>
+      <td>339263097</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>15</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>36156.9779811</td>
+      <td>10299218.4841</td>
+      <td>Marungu hills</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>Feature</td>
+      <td>296108660</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.81494, -3.60187], [38.78068, -3.65734],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-24.json</td>
+      <td>296108660</td>
+      <td>296108660</td>
+      <td>G8950-4351274340491204675-24</td>
+      <td>296108660</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>83909.5919082</td>
+      <td>301557600.749</td>
+      <td>Rukinga</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>Feature</td>
+      <td>95635205</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.83568, -3.7024], [38.83568, -3.7024], [...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-3.json</td>
+      <td>95635205</td>
+      <td>95635205</td>
+      <td>G8950-4351274340491204675-3</td>
+      <td>95635205</td>
+      <td>Bachuma Graziers</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>83909.5919082</td>
+      <td>301557600.749</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>Feature</td>
+      <td>52480768</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.8495, -3.62182], [38.87702, -3.63722], ...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-4.json</td>
+      <td>52480768</td>
+      <td>52480768</td>
+      <td>G8950-4351274340491204675-4</td>
+      <td>52480768</td>
+      <td>Bachuma Graziers</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>Bachuma Graziers</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>Feature</td>
+      <td>9326332</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.93326, -3.68418], [38.93249, -3.68544],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-5.json</td>
+      <td>9326332</td>
+      <td>9326332</td>
+      <td>G8950-4351274340491204675-5</td>
+      <td>9326332</td>
+      <td>None</td>
+      <td>...</td>
+      <td>LMD</td>
+      <td>35319.0690104</td>
+      <td>44051493.9094</td>
+      <td>7</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>84023.1507562</td>
+      <td>409022474.063</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>Feature</td>
+      <td>395668624</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.83235, -3.70764], [38.83568, -3.7024], ...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-6.json</td>
+      <td>395668624</td>
+      <td>395668624</td>
+      <td>G8950-4351274340491204675-6</td>
+      <td>395668624</td>
+      <td>None</td>
+      <td>...</td>
+      <td>LMD</td>
+      <td>35319.0690104</td>
+      <td>44051493.9094</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>83909.5919082</td>
+      <td>301557600.749</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>Feature</td>
+      <td>352514188</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.87702, -3.63722], [38.93958, -3.67379],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-7.json</td>
+      <td>352514188</td>
+      <td>352514188</td>
+      <td>G8950-4351274340491204675-7</td>
+      <td>352514188</td>
+      <td>None</td>
+      <td>...</td>
+      <td>LMD</td>
+      <td>35319.0690104</td>
+      <td>44051493.9094</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>LMD</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>Feature</td>
+      <td>309359751</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.78296, -3.61898], [38.7829, -3.6191], [...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-8.json</td>
+      <td>309359751</td>
+      <td>309359751</td>
+      <td>G8950-4351274340491204675-8</td>
+      <td>309359751</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>0</td>
+      <td>22016107.2441</td>
+      <td>5396.26635421</td>
+      <td>2202</td>
+      <td>19297.6903492</td>
+      <td>22016109.3623</td>
+      <td>jojoba</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>Feature</td>
+      <td>266205314</td>
+      <td>MultiPolygon</td>
+      <td>[[[[38.77323, -3.94426], [38.77815, -3.87676],...</td>
+      <td>/GeoFeature/G8950-4351274340491204675-9.json</td>
+      <td>266205314</td>
+      <td>266205314</td>
+      <td>G8950-4351274340491204675-9</td>
+      <td>266205314</td>
+      <td>None</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>31219.6395812</td>
+      <td>59567669.1923</td>
+      <td>Amaka</td>
+    </tr>
+  </tbody>
+</table>
+<p>24 rows × 22 columns</p>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>get_layer_features &lt;- function( projectId = pid,
+                                layerId = lid,
+                                session = session,
+                                URL = &quot;https://focus.sensingclues.org/&quot;,
+                                cookie = cookie) {
+  searchType = &#39;all&#39;
+
+  # select the proper source URL
+  url_layer &lt;- paste0(URL,&quot;api/map/&quot;,searchType,&quot;/&quot;,projectId,&quot;/&quot;,layerId,&quot;/features&quot;)
+
+  # initial call to get total and number of pages to get
+  handle_reset(url_layer)
+  result &lt;- POST(url_layer, content_type_json(),  set_cookies(focus2 = URLdecode(cookie$value)))
+  layer &lt;- content(result)
+  return(geojson_sf(toJSON(layer,auto_unbox=TRUE)))
+}
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-cyan-fg">  Input </span><span class="ansi-green-fg">In [18]</span>
+<span class="ansi-red-fg">    searchType = &#39;all&#39;</span>
+    ^
+<span class="ansi-red-fg">SyntaxError</span><span class="ansi-red-fg">:</span> invalid syntax. Maybe you meant &#39;==&#39; or &#39;:=&#39; instead of &#39;=&#39;?
+
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -424,6 +1432,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
+</section>
 </section>
 
 
