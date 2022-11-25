@@ -26,7 +26,7 @@ def extr_row(row, extr,nested_col_names):
     extr_val, expl_val = {}, []
     for val in extr:
         *cols, type_extr = val["full_key"]  # get the columns to loop though and type lookup
-        nested_names = "_".join(cols)
+        nested_names = "_".join([str(_) for _ in cols])
         # extract everything till reach the level we start extracting
         find_cols = val["columns"]
         filt_data = recurGet(row, cols) if len(cols) > 0 else row
