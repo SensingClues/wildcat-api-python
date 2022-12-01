@@ -109,6 +109,42 @@ class WildcatApi:
         cleaner = dataCleaner(data)
         return cleaner.list_to_pd()
 
+    def get_all_layers(self,
+                       exclude_pids: list = None) -> pd.DataFrame:
+        """Get layers to which the user has access
+
+        :param exclude_pids: List of pids to exclude, in addition to
+        ['track', 'default'], which are always excluded. Default is None,
+        in which case exclude_pids is set to ['track', 'default'].
+        :returns: pd.DataFrame with layer names and id's
+        """
+
+        default_exclude_pids = ['track', 'default']
+        if not exclude_pids:
+            exclude_pids = default_exclude_pids
+        else:
+            exclude_pids.append(default_exclude_pids)
+
+        cols_to_rename = {
+            "id": "lid",
+            "name": "layerName"
+        }
+        url_addition = "/map/all/describe"
+
+        r = self._api_call("get", url_addition)
+        output = r.json()
+
+        # key 'pid' is added to access layers in layer_feature_extractor.
+        layer_output = [{**{"pid": key}, **output["models"][key]}
+                        for key in output["models"].keys()]
+
+        extractor = dataExtractor("all_layers")
+        extracted_output = extractor.extr(layer_output)
+        df = pd.DataFrame(extracted_output) \
+               .rename(columns=cols_to_rename)
+        df = df.loc[~df['pid'].isin(exclude_pids)]
+        return df
+
     def _close_session(self):
         self.session.close()
 
@@ -253,4 +289,16 @@ class WildcatApi:
                 df = pd.concat([df, new_df], ignore_index=True, sort=False)
         return df.merge(track_metadata, how="right", left_on="EntityId", right_on="entityId")
 
+    def layer_feature_extractor(self,
+                                project_id: int,
+                                layer_id: int):
+        """Extract details for a specific layer"""
 
+        url_addition = f"map/all/{project_id}/{layer_id}/features/"
+
+        r = self._api_call("get", url_addition)
+        output = r.json()
+
+        # TODO
+        # extractor = dataExtractor("layer_features")
+        pass
