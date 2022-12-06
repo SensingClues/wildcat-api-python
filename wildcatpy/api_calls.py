@@ -5,11 +5,13 @@ import requests
 import json
 import geopandas
 from wildcatpy.src.helper_functions import *
+import numpy as np
 import pandas as pd
 from wildcatpy.src.cleaner import dataCleaner
 from wildcatpy.src.data_extractor import dataExtractor
 import io
 
+DEFAULT_EXCLUDE_PIDS = ['track', 'default']
 
 class WildcatApi:
     """
@@ -108,42 +110,6 @@ class WildcatApi:
         data = extr.extr(r.json())
         cleaner = dataCleaner(data)
         return cleaner.list_to_pd()
-
-    def get_all_layers(self,
-                       exclude_pids: list = None) -> pd.DataFrame:
-        """Get layers to which the user has access
-
-        :param exclude_pids: List of pids to exclude, in addition to
-        ['track', 'default'], which are always excluded. Default is None,
-        in which case exclude_pids is set to ['track', 'default'].
-        :returns: pd.DataFrame with layer names and id's
-        """
-
-        default_exclude_pids = ['track', 'default']
-        if not exclude_pids:
-            exclude_pids = default_exclude_pids
-        else:
-            exclude_pids.append(default_exclude_pids)
-
-        cols_to_rename = {
-            "id": "lid",
-            "name": "layerName"
-        }
-        url_addition = "/map/all/describe"
-
-        r = self._api_call("get", url_addition)
-        output = r.json()
-
-        # key 'pid' is added to access layers in layer_feature_extractor.
-        layer_output = [{**{"pid": key}, **output["models"][key]}
-                        for key in output["models"].keys()]
-
-        extractor = dataExtractor("all_layers")
-        extracted_output = extractor.extr(layer_output)
-        df = pd.DataFrame(extracted_output) \
-               .rename(columns=cols_to_rename)
-        df = df.loc[~df['pid'].isin(exclude_pids)]
-        return df
 
     def _close_session(self):
         self.session.close()
@@ -289,16 +255,89 @@ class WildcatApi:
                 df = pd.concat([df, new_df], ignore_index=True, sort=False)
         return df.merge(track_metadata, how="right", left_on="EntityId", right_on="entityId")
 
-    def layer_feature_extractor(self,
-                                project_id: int,
-                                layer_id: int):
-        """Extract details for a specific layer"""
+    def get_all_layers(self,
+                       exclude_pids: list = None) -> pd.DataFrame:
+        """Get layers to which the user has access
 
-        url_addition = f"map/all/{project_id}/{layer_id}/features/"
+        :param exclude_pids: List of pids to exclude, in addition to
+        ['track', 'default'], which are always excluded. Default is None,
+        in which case exclude_pids is set to ['track', 'default'].
+        :returns: pd.DataFrame with project id's and layer names
+        """
+
+        if not exclude_pids:
+            exclude_pids = DEFAULT_EXCLUDE_PIDS
+        else:
+            exclude_pids += DEFAULT_EXCLUDE_PIDS
+        exclude_pids = [str(x) for x in exclude_pids]
+
+        cols_to_rename = {
+            "id": "lid",
+            "name": "layerName"
+        }
+        url_addition = "/map/all/describe"
 
         r = self._api_call("get", url_addition)
         output = r.json()
 
-        # TODO
-        # extractor = dataExtractor("layer_features")
-        pass
+        # key 'pid' is added to access layers in layer_feature_extractor.
+        layer_output = [{**{"pid": key}, **output["models"][key]}
+                        for key in output["models"].keys()]
+
+        extractor = dataExtractor("all_layers")
+        extracted_output = extractor.extr(layer_output)
+        df = pd.DataFrame(extracted_output) \
+               .rename(columns=cols_to_rename)
+
+        df = df.loc[~df['pid'].isin(exclude_pids)]
+        return df
+
+    def layer_feature_extractor(self,
+                                project_name: str = None,
+                                project_id: int = None,
+                                layer_id: int = None,
+                                **kwargs):
+        """Extract details for a specific layer
+
+        :param project_name: Name of project to extract layer features for.
+        If not specified, project_id and layer_id should be. Default is None.
+        :param project_id: id of project to extract. Default is None.
+        :param layer_id: id of layer to extract. Default is None.
+
+        :returns: geopandas.DataFrame with features of the requested layer
+
+        """
+
+        all_layers = self.get_all_layers(**kwargs)
+
+        if project_name:
+            project_layer = all_layers.loc[all_layers['layerName'] ==
+                                           project_name]
+            if np.shape(project_layer)[0] > 0:
+                project_id = project_layer['pid'].astype(int).values[0]
+                layer_id = project_layer['lid'].astype(int).values[0]
+            else:
+                raise ValueError(f'No layer available for project_name '
+                                 f'{project_name}')
+        else:
+            msg = (f'If not providing a project_name, '
+                   f'please specify the project_id and layer_id.')
+            assert (
+                isinstance(project_id, int) and isinstance(layer_id, int)), msg
+
+        url_addition = f"map/all/{project_id}/{layer_id}/features/"
+
+        r = self._api_call("post", url_addition)
+
+        # relevant geometry information can be read using geopandas
+        gdf = geopandas.read_file(io.BytesIO(r.content))
+
+        # TODO: do we even need the other details?
+        output = r.json()
+        extr = dataExtractor("layer_features")
+        extr_output = extr.extr(output, nested_col_names=True)
+        df = pd.DataFrame(extr_output)
+        gdf = pd.concat([gdf, df], axis=1)
+
+        return gdf
+

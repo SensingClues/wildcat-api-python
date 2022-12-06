@@ -1,0 +1,117 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.14.1
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
+# ---
+
+# # Demo of functionality available in wildcat-api-python
+#
+# This demo shows the available functionality using default settings for parameters. For more detail on what you can configure as a user, see the documentation and description of individual methods in the WildcatApi-class.
+#
+# ### Before you start
+#
+# To be able to run this notebook, you should:
+# - ... add text similar to installation instructions ...
+
+# ## Configuration
+
+from wildcatpy.api_calls import WildcatApi
+import json
+import pandas as pd
+
+
+# ### [Optional]
+# Demo imports password via een dotenv file so the username / password are never commited. You can use this method or fill in the username and password yourself. 
+#
+
+# +
+# # !python3 -m pip install python-dotenv
+# -
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# %load_ext autoreload
+# %autoreload 2
+
+username = os.getenv("USERNAME") # you can also type your password here manually
+password = os.getenv('PASSWORD') # You can also type your username here manually
+
+
+# ## Demo-time, here we go!
+
+api_call = WildcatApi(username, password)
+
+# ## Login 
+
+# expected output if successful: '<Response [200]>'
+api_call.login(username, password)
+
+# +
+# It is not necessarily per se to to log out, 
+# but you can do so by calling:
+# api_call.logout()
+# -
+
+# ### Obtain the groups you have access to
+
+info = api_call.get_groups()
+
+info.head()
+
+# for other functionality, you can specify a group to extract data from
+groups = "focus-project-7136973"
+
+# ### Get observations
+#
+
+observations = api_call.observation_extractor(groups=groups, operator=["intersects"])
+
+observations.info()
+
+observations.head()
+
+# ### Get track metadata
+
+tracks = api_call.track_extractor(groups=groups,end_time="T23:59:54-00:00")
+
+tracks.head()
+
+# ### Add geosjon to track
+
+tracks_geo = api_call.add_geojson_to_track(tracks)
+
+tracks_geo.head()
+
+# ### Get all available layers (projects)
+
+layers = api_call.get_all_layers()
+
+layers
+
+# ### Get details (features) for an individual layer
+
+df = api_call.layer_feature_extractor(project_name='test_polygon')
+
+# #### [optional] Plot available geometries (requires Folium)
+
+# !pip install folium
+
+import folium
+
+poly_map = folium.Map([51.9244, 4.4777], zoom_start=8, tiles='cartodbpositron')
+for _, geometry in df['geometry'].items():
+    folium.GeoJson(geometry).add_to(poly_map)
+folium.LatLngPopup().add_to(poly_map)
+poly_map
+
+
