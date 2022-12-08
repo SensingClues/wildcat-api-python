@@ -2,6 +2,7 @@ pandas
 requests
 geopandas
 geojson
-sphinx
 nbsphinx
+python-dotenv
+sphinx
 sphinx-rtd-theme

@@ -19,25 +19,22 @@
 # ### Before you start
 #
 # To be able to run this notebook, you should:
-# - ... add text similar to installation instructions ...
+# - install the wildcat-api-python package in a virtual environment (`pip install -e .` from the main directory of the repository).
+# - install the requirements in requirements.txt (if not already installed automatically in the previous step).
+# - create a file '.env' in the root of the wildcat-api-python-repository, containing your Cluey credentials. These will be read in this notebook to log in. The file should look like this:
+# <br>`# Cluey credentials`
+# <br>`USERNAME=your_username`
+# <br>`PASSWORD=your_password`
 
 # ## Configuration
 
 from wildcatpy.api_calls import WildcatApi
+from dotenv import load_dotenv
 import json
+import os
 import pandas as pd
 
 
-# ### [Optional]
-# Demo imports password via een dotenv file so the username / password are never commited. You can use this method or fill in the username and password yourself. 
-#
-
-# +
-# # !python3 -m pip install python-dotenv
-# -
-
-import os
-from dotenv import load_dotenv
 load_dotenv()
 
 # %load_ext autoreload
@@ -51,7 +48,7 @@ password = os.getenv('PASSWORD') # You can also type your username here manually
 
 api_call = WildcatApi(username, password)
 
-# ## Login 
+# ### Login 
 
 # expected output if successful: '<Response [200]>'
 api_call.login(username, password)
@@ -73,6 +70,9 @@ groups = "focus-project-7136973"
 
 # ### Get observations
 #
+# Note that you can control the scope (e.g. coordinates) of these observations in more detail than done here.
+#
+# TODO: provide detailed instructions.
 
 observations = api_call.observation_extractor(groups=groups, operator=["intersects"])
 
@@ -81,12 +81,20 @@ observations.info()
 observations.head()
 
 # ### Get track metadata
+#
+# Note that you can control the scope (e.g. coordinates) of these observations in more detail than done here.
+#
+# TODO: provide detailed instructions.
 
 tracks = api_call.track_extractor(groups=groups,end_time="T23:59:54-00:00")
 
 tracks.head()
 
 # ### Add geosjon to track
+#
+# Note that you can control the scope (e.g. coordinates) of these observations in more detail than done here.
+#
+# TODO: provide detailed instructions.
 
 tracks_geo = api_call.add_geojson_to_track(tracks)
 

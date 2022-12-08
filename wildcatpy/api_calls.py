@@ -8,10 +8,11 @@ from wildcatpy.src.helper_functions import *
 import numpy as np
 import pandas as pd
 from wildcatpy.src.cleaner import dataCleaner
-from wildcatpy.src.data_extractor import dataExtractor
+from wildcatpy.src.data_extractor import DataExtractor
 import io
 
 DEFAULT_EXCLUDE_PIDS = ['track', 'default']
+
 
 class WildcatApi:
     """
@@ -106,7 +107,7 @@ class WildcatApi:
             page_length=0
         )
         r = self._api_call("post", url_addition, payload)
-        extr = dataExtractor("groups_extractor")
+        extr = DataExtractor("groups_extractor")
         data = extr.extr(r.json())
         cleaner = dataCleaner(data)
         return cleaner.list_to_pd()
@@ -204,7 +205,7 @@ class WildcatApi:
         extra_request = True
         first_iter = True
         page_nbr = 0
-        extr = dataExtractor(extractor_name)
+        extr = DataExtractor(extractor_name)
         # fix timestamp!!
         while extra_request: #while loop so first call can directly be used
             query = make_query(bounds=bounds,
@@ -284,7 +285,7 @@ class WildcatApi:
         layer_output = [{**{"pid": key}, **output["models"][key]}
                         for key in output["models"].keys()]
 
-        extractor = dataExtractor("all_layers")
+        extractor = DataExtractor("all_layers")
         extracted_output = extractor.extr(layer_output)
         df = pd.DataFrame(extracted_output) \
                .rename(columns=cols_to_rename)
@@ -334,7 +335,7 @@ class WildcatApi:
 
         # TODO: do we even need the other details?
         output = r.json()
-        extr = dataExtractor("layer_features")
+        extr = DataExtractor("layer_features")
         extr_output = extr.extr(output, nested_col_names=True)
         df = pd.DataFrame(extr_output)
         gdf = pd.concat([gdf, df], axis=1)

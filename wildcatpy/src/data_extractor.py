@@ -61,7 +61,7 @@ def extr_row(row, extr,nested_col_names):
 check_nested = lambda x: any(isinstance(y, dict) for y in x.values())
 
 
-class dataExtractor:
+class DataExtractor:
     """
     This class extracts data from raw input based on a json input file.
     Moreover, we have an json file that is easy to read and update and this file is 
