@@ -29,10 +29,10 @@ def extr_row(row, extr,nested_col_names):
         nested_names = "_".join([str(_) for _ in cols])
         # extract everything till reach the level we start extracting
         find_cols = val["columns"]
+        if find_cols == "__ALL__": # if special keyword is used take all the columns
+            find_cols = filt_data.keys()
         filt_data = recurGet(row, cols) if len(cols) > 0 else row
         if type_extr == "extract_values":  # lookup type 1: Just simply get the variable
-            if find_cols == "__ALL__":
-                find_cols = filt_data.keys()
             extr_val = {**extr_val,
                         **{nested_names + "_" + key if nested_col_names else key:
                                filt_data.get(key, False) for key in find_cols}}
@@ -42,8 +42,6 @@ def extr_row(row, extr,nested_col_names):
         # We make a list of dictionaries with all the colums from the extracter that we can find
         # Later on those have to be exploded
         elif type_extr == "explode_values":
-            if find_cols == "__ALL__":
-                find_cols = filt_data.keys()
             # I use row.get(col,None) != None instead of row.get(col,False) because we can found a 0 which
             # which is similar to False. So then we lose values
             expl_val.extend([{nested_names + "_" + col if nested_col_names else col: row[col]
