@@ -6,11 +6,7 @@
     "facets": {
       "dataSources": {
         "facetValues": {
-          "explode_values": [
-            "name",
-            "count",
-            "value"
-          ]
+          "explode_values": "__ALL__"
         }
       }
     }
