@@ -1,43 +1,44 @@
-#username = "jobvancreij"
-#password =
+"""Main WildcatApi-class"""
 
-import requests
-import json
 import geopandas
-from wildcatpy.src.helper_functions import *
+import io
+import math
 import numpy as np
 import pandas as pd
-from wildcatpy.src.cleaner import dataCleaner
-from wildcatpy.src.data_extractor import DataExtractor
-import io
+import requests
+
+from wildcatpy.src import (
+    DataCleaner,
+    DataExtractor,
+    make_query,
+)
 
 DEFAULT_EXCLUDE_PIDS = ['track', 'default']
 
 
 class WildcatApi:
-    """
-    Class which can be used to extract sensing clues data 
-    
-    """
-    def __init__(self, user_name: str,password: str):
+    """Class to extract various types of SensingClues-data"""
+
+    def __init__(self, user_name: str, password: str):
         """
-        Autoamtically login when initiate class
+        Automatically login when initiate class
         :param user_name: Username for focus
         :param password: Password for focus
         """
-        self.session = requests.Session() #session object to share between calls
-        self.login(user_name,password)
+        self.session = requests.Session()
+        self.login(user_name, password)
 
     def _api_call(self,
-                 action,
-                 url_addition,
-                 payload = {}):
-        """
-        One function for a requests made so we only need to program logic once (catching errors etc)
-        
+                  action,
+                  url_addition,
+                  payload: dict = None):
+        """Main method to make requests from Focus/Cluey
+
+        This method can be called by all methods available in WildcatApi
+
         :param action: Type of request, currently post or get
         :param url_addition: what to add to the base url
-        :param payload: the payload that has to be send
+        :param payload: the payload that has to be sent
         :return:
         """
 
@@ -46,11 +47,10 @@ class WildcatApi:
             "post": self.session.post,
             "get": self.session.get
         }
-        # extra args that have to be send
         extra_args = {
             "headers": {'Content-type': 'application/json'}
         }
-        if payload:  # only add payload if it is not empty
+        if payload:
             extra_args["json"] = payload
 
         r = request_trans[action](
@@ -58,21 +58,25 @@ class WildcatApi:
             **extra_args
         )
         # add extra status codes
-        if r.status_code == 200: pass # print(f"req to {url} success")
-        elif r.status_code == 204: print(f"req to {url}, sucessfull logout") #only seen by logout
-        elif r.status_code == 404: raise TypeError(f"unknown url {url}")
-        elif r.status_code == 405: raise TypeError(f"Check post/get for url {url}")
-        else: raise TypeError(f"Unknow error {str(r.status_code)}, {r.json()} ")
+        if r.status_code == 200:
+            pass  # print(f"req to {url} success")
+        elif r.status_code == 204:
+            print(f"req to {url}, sucessfull logout")  # only seen by logout
+        elif r.status_code == 404:
+            raise TypeError(f"unknown url {url}")
+        elif r.status_code == 405:
+            raise TypeError(f"Check post/get for url {url}")
+        else:
+            raise TypeError(f"Unknow error {str(r.status_code)}, {r.json()} ")
         return r
 
+    def login(self, username: str, password: str):
+        """Function to log in to Focus/Cluey
 
-    def login(self,username: str,password: str):
-        """
-        Have to login before making requests. The login is done automatically 
-        when initiating the class
+        Login is done automatically when initiating the WildcatApi-class.
         
         :param username: Username for focus
-        :param password: Passowrd for focus
+        :param password: Password for focus
         :return: Api call result
         """
 
@@ -81,17 +85,16 @@ class WildcatApi:
             'username': username,
             'password': password,
         }
-        return self._api_call("post",url_addition, payload)
+        return self._api_call("post", url_addition, payload)
 
     def logout(self):
-        """
-        Logs the user out
+        """Function to log out of Focus/Cluey
 
         :return: Api call result
 
         """
         url_addition = "auth/logout"
-        return self._api_call("post",url_addition, {})
+        return self._api_call("post", url_addition, {})
 
     def get_groups(self) -> pd.DataFrame:
         """
@@ -100,16 +103,16 @@ class WildcatApi:
         """
         url_addition = "search/all/facets"
         payload = make_query(
-            date_from= "1900-01-01",
-            date_to= "9999-12-31",
-            type_analysis = ["Observation", "track"],
+            date_from="1900-01-01",
+            date_to="9999-12-31",
+            data_type=["Observation", "track"],
             page_nbr=1,
             page_length=0
         )
         r = self._api_call("post", url_addition, payload)
         extr = DataExtractor("groups_extractor")
         data = extr.extr(r.json())
-        cleaner = dataCleaner(data)
+        cleaner = DataCleaner(data)
         return cleaner.list_to_pd()
 
     def _close_session(self):
@@ -121,59 +124,51 @@ class WildcatApi:
         Function to acquire tracks data. 
         This function takes the **kwargs argument. This means that extra arguments can be 
         added. Those arguments are used to call subfunctions. The allowed extra arguments are added
-        in the parameters. The group argument is mandotory, the rest is optional
+        in the parameters. The group argument is mandatory, the rest is optional
     
-        :param groups: for example ["focus-project-7136973"]
-        :param bounds: dict with coordinates {"north": 90, "south": 90, "west": 90,"east":90"}
-        :param operator: The operator that will be put in the query, for example ["intersects"]
-        :param date_from: start date for the query
-        :param date_to: end date of the query
-        :param type_analysis: for example ["Observation", "track"]
-        :param query_text: for example entityId: 'exampleE
-        :param page_nbr: Which page number to start (call will recalc page number when page_length is given)
-        :param page_length: How many pages should a request contain
-        :param end_time: For a timestamp for end_date, format = T00:00:00-00:00"
-        :param start_time:For a timestamp for start_date, format = T00:00:00-00:00"
+        For an overview of the extra arguments allowed, see
+        the description of make_query in helper functions.
+
+        TODO: Can copy argument-description back here once finalized.
+
+        :param groups: Name(s) of groups to query from,
+        e.g. "focus-project-7136973". TODO: check if both str and list allowed.
 
         """
         return self._iterate_api(groups,
-                                     **kwargs,
-                                     type_analysis=["track"],
-                                     extractor_name="track_extractor",
-                                     )
+                                 **kwargs,
+                                 data_type=["track"],
+                                 extractor_name="track_extractor",
+                                 )
 
     def observation_extractor(self,
                               groups: str,
-                              **kwargs) -> pd.DataFrame: 
+                              **kwargs) -> pd.DataFrame:
         """
         Extract observations 
         
         This function takes the **kwargs argument. This means that extra arguments can be 
         added. Those arguments are used to call subfunctions. The allowed extra arguments are added
-        in the parameters. The group argument is mandotory, the rest is optional
-        
-        :param groups: for example ["focus-project-7136973"]
-        :param bounds: dict with coordinates {"north": 90, "south": 90, "west": 90,"east":90"}
-        :param operator: The operator that will be put in the query, for example ["intersects"]
-        :param date_from: start date for the query
-        :param date_to: end date of the query
-        :param type_analysis: for example ["Observation", "track"]
-        :param query_text: for example entityId: 'exampleE
-        :param page_nbr: Which page number to start (call will recalc page number when page_length is given)
-        :param page_length: How many pages should a request contain
-        :param end_time: For a timestamp for end_date, format = T00:00:00-00:00"
-        :param start_time: For a timestamp for start_date, format = T00:00:00-00:00"
+        in the parameters. The group argument is mandatory, the rest is optional
+
+        For an overview of the extra arguments allowed, see
+        the description of make_query in helper functions.
+
+        TODO: Can copy argument-description back here once finalized.
+
+        :param groups: Name(s) of groups to query from,
+        e.g. "focus-project-7136973". TODO: check if both str and list allowed.
         :return: Df containing the observations according to the filters
         """
         col_trans = {
             "label": "conceptLabel"
         }
-        
+
         df = self._iterate_api(groups,
-                                   **kwargs,
-                                   type_analysis=["observation"],
-                                   extractor_name="observation_extractor",
-                                   )
+                               **kwargs,
+                               data_type=["observation"],
+                               extractor_name="observation_extractor",
+                               )
         # Extra filter implementation 
         # If you filter  on concepts other concepts from an observation that had the 
         # filtered concept are returned. So do another filtering 
@@ -186,20 +181,20 @@ class WildcatApi:
     def _iterate_api(
             self,
             groups,
-            type_analysis,
+            data_type,
             extractor_name,
             bounds={"north": 90, "east": 180, "west": -179, "south": -89},
             from_date="1900-01-01",
             to_date="9999-12-31",
             _page_length=10,
-            **kwargs #extra args for make_query such as begin and end time
+            **kwargs  # extra args for make_query such as begin and end time
 
     ):
         """
         Iterates to df and makes calls <-- update 
         
         :param groups: Filter on the group 
-        :param type_analysis: 
+        :param data_type: 
         """
         output_data = []
         extra_request = True
@@ -207,11 +202,11 @@ class WildcatApi:
         page_nbr = 0
         extr = DataExtractor(extractor_name)
         # fix timestamp!!
-        while extra_request: #while loop so first call can directly be used
+        while extra_request:  # while loop so first call can directly be used
             query = make_query(bounds=bounds,
                                date_to=to_date,
                                date_from=from_date,
-                               type_analysis=type_analysis,
+                               data_type=data_type,
                                groups=groups,
                                page_length=_page_length,
                                page_nbr=page_nbr,
@@ -222,12 +217,12 @@ class WildcatApi:
                 if nbr_pages == 0:
                     break
             data = extr.extr(r.json())
-            cleaner = dataCleaner(data)
+            cleaner = DataCleaner(data)
             output_data.extend(cleaner.get_list_dict())
             if page_nbr == nbr_pages:
                 break
             page_nbr += 1
-        return dataCleaner(output_data).list_to_pd()
+        return DataCleaner(output_data).list_to_pd()
 
     def add_geojson_to_track(self, metadata_input: pd.DataFrame) -> pd.DataFrame:
         """
@@ -237,7 +232,7 @@ class WildcatApi:
         :return: Df containing the tracks with the geojson
         """
         import copy
-        track_metadata = copy.deepcopy(metadata_input) #make shallow copy from old dataframe
+        track_metadata = copy.deepcopy(metadata_input)  # make shallow copy from old dataframe
         url_addition = "map/all/track/0/features/"
         track_metadata["endWhen"] = pd.to_datetime(track_metadata["endWhen"], infer_datetime_format=True)
         track_metadata["startWhen"] = pd.to_datetime(track_metadata["startWhen"], infer_datetime_format=True)
@@ -288,7 +283,7 @@ class WildcatApi:
         extractor = DataExtractor("all_layers")
         extracted_output = extractor.extr(layer_output)
         df = pd.DataFrame(extracted_output) \
-               .rename(columns=cols_to_rename)
+            .rename(columns=cols_to_rename)
 
         df = df.loc[~df['pid'].isin(exclude_pids)]
         return df
@@ -323,8 +318,8 @@ class WildcatApi:
         else:
             msg = (f'If not providing a project_name, '
                    f'please specify the project_id and layer_id.')
-            assert (
-                isinstance(project_id, int) and isinstance(layer_id, int)), msg
+            assert (isinstance(project_id, int) and isinstance(layer_id,
+                                                               int)), msg
 
         url_addition = f"map/all/{project_id}/{layer_id}/features/"
 
@@ -341,4 +336,3 @@ class WildcatApi:
         gdf = pd.concat([gdf, df], axis=1)
 
         return gdf
-

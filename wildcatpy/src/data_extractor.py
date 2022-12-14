@@ -1,3 +1,4 @@
+import json
 import pkg_resources
 from wildcatpy.src.helper_functions import *
 
@@ -11,7 +12,7 @@ def extr_trans(extr, full_key=None):
                      columns: Which columns to extract from this full key
 
     """
-    if full_key == None:  # first (non recursive) call the full key is None and make it empty
+    if full_key is None:  # first (non recursive) call the full key is None and make it empty
         full_key = []
     for key, value in extr.items():
         if key.isnumeric():  # check bc there can be integers
@@ -22,14 +23,14 @@ def extr_trans(extr, full_key=None):
             yield (full_key + [key], value)
 
 
-def extr_row(row, extr,nested_col_names):
+def extr_row(row, extr, nested_col_names):
     extr_val, expl_val = {}, []
     for val in extr:
         *cols, type_extr = val["full_key"]  # get the columns to loop though and type lookup
         nested_names = "_".join([str(_) for _ in cols])
         # extract everything till reach the level we start extracting
         find_cols = val["columns"]
-        filt_data = recurGet(row, cols) if len(cols) > 0 else row
+        filt_data = recursive_get_from_dict(row, cols) if len(cols) > 0 else row
         if type_extr == "extract_values":  # lookup type 1: Just simply get the variable
             extr_val = {**extr_val,
                         **{nested_names + "_" + key if nested_col_names else key:
@@ -48,7 +49,7 @@ def extr_row(row, extr,nested_col_names):
     # in case no exploded values need to be searched it cannot be empty
     # becasue the combination code would give an empty dict
     # so check if exlo is empty and make non empty without data if it is 
-    if len(expl_val) == 0: 
+    if len(expl_val) == 0:
         expl_val = [{}]
     # Over here the extract_values and exploded_values are combined
     # The data is not on the same level yet, extract_values = {} and expl_val =[{}]
@@ -96,25 +97,19 @@ class DataExtractor:
     def get_ext_clean(self, ext_raw):
         return [{"full_key": key, "columns": value} for key, value in extr_trans(ext_raw)]
 
-    def extr(self, data,nested_col_names=False):
+    def extr(self, data, nested_col_names=False):
         """
 
         """
-        # only if we need to go deeper in data recurGet should be called
+        # only if we need to go deeper in data recursive_get_from_dict should be called
         # Otherwise it's called without arguments and crashes
-        if len(self._ext_data_path) > 0: 
-            data = recurGet(data,self._ext_data_path )
+        if len(self._ext_data_path) > 0:
+            data = recursive_get_from_dict(data, self._ext_data_path)
         # it can happen that only one row of data is given
         # So no list of dicts but only one dict
         # Put it in a list so the code doesn't start iterating a dict
-        if isinstance(data,dict):
+        if isinstance(data, dict):
             data = [data]
         # Iterate through dataset extract for every row
         # flatten with sum 
-        return sum([extr_row(row, self._ext_clean,nested_col_names) for row in data], [])
-
-
-
-
-
-
+        return sum([extr_row(row, self._ext_clean, nested_col_names) for row in data], [])
