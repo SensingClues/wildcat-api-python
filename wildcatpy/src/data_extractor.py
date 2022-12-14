@@ -29,9 +29,9 @@ def extr_row(row, extr,nested_col_names):
         nested_names = "_".join([str(_) for _ in cols])
         # extract everything till reach the level we start extracting
         find_cols = val["columns"]
+        filt_data = recurGet(row, cols) if len(cols) > 0 else row
         if find_cols == "__ALL__": # if special keyword is used take all the columns
             find_cols = filt_data.keys()
-        filt_data = recurGet(row, cols) if len(cols) > 0 else row
         if type_extr == "extract_values":  # lookup type 1: Just simply get the variable
             extr_val = {**extr_val,
                         **{nested_names + "_" + key if nested_col_names else key:
