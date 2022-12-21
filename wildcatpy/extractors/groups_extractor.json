@@ -1,7 +1,5 @@
 {
-  "cols_to_data": [
-
-  ],
+  "cols_to_data": [],
   "extractor": {
     "facets": {
       "dataSources": {

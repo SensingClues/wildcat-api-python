@@ -1,13 +1,10 @@
 import setuptools
 import glob
-from distutils.command.bdist import bdist as _bdist
-from distutils.command.sdist import sdist as _sdist
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 with open('requirements.txt') as f:
     required = f.read().splitlines()
-#
 
 setuptools.setup(
     name="wildcatpy",
@@ -16,10 +13,10 @@ setuptools.setup(
     author_email="sensingclues@typemail.com",
     description="wildcatpy",
     long_description=long_description,
-    url="https://github.com/jobvancreij/wildcat-api-test",
+    url="https://github.com/SensingClues/wildcat-api-python",
     packages=setuptools.find_packages(),
     data_files=glob.glob('wildcatpy/extractors/**'),
-    install_requires = required,
+    install_requires=required,
     include_package_data=True,
     package_data={'': ['extractors/*']},
     classifiers=[

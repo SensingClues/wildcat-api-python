@@ -1,7 +1,9 @@
-pandas
-requests
-geopandas
 geojson
-sphinx
+geopandas
 nbsphinx
+numpy
+pandas
+python-dotenv
+requests
+sphinx
 sphinx-rtd-theme
