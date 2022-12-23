@@ -97,23 +97,26 @@ class WildcatApi:
         return self._api_call("post", url_addition, {})
 
     def get_groups(self) -> pd.DataFrame:
-        """
-        Function to get the groups to which the user has access
-        :return: df with groups
+        """Get overview of groups to which the user has access
+
+        :returns: Dataframe with available groups
         """
         url_addition = "search/all/facets"
         payload = make_query(
-            date_from="1900-01-01",
-            date_to="9999-12-31",
-            data_type=["Observation", "track"],
-            page_nbr=1,
-            page_length=0
+            data_type=["observation", "track"],  # TODO: why these types only?
         )
         r = self._api_call("post", url_addition, payload)
         extr = DataExtractor("groups_extractor")
         data = extr.extr(r.json())
         cleaner = DataCleaner(data)
-        return cleaner.list_to_pd()
+        df = cleaner.list_to_pd()
+
+        df = df[['name', 'value', 'count']]
+        df = df.rename(columns={
+            'value': 'description',
+            'count': 'n_records',
+        })
+        return df
 
     def _close_session(self):
         self.session.close()
@@ -143,22 +146,26 @@ class WildcatApi:
 
     def observation_extractor(self,
                               groups: str,
+                              include_subconcepts: bool = True,
                               **kwargs) -> pd.DataFrame:
-        """
-        Extract observations 
+        """Extract observations from Focus/Cluey
         
-        This function takes the **kwargs argument. This means that extra arguments can be 
-        added. Those arguments are used to call subfunctions. The allowed extra arguments are added
-        in the parameters. The group argument is mandatory, the rest is optional
+        For an overview of the extra arguments (kwargs)allowed, see
+        the description of make_query in helper_functions.
 
-        For an overview of the extra arguments allowed, see
-        the description of make_query in helper functions.
+        TODO: Can copy argument-description back here, once finalized.
 
-        TODO: Can copy argument-description back here once finalized.
+        :param groups: Name of group or list of groups to query from,
+        e.g. "focus-project-7136973".
+        :param include_subconcepts: Whether or not keep observations related to
+            concepts lower in the hierarchy than the concept filtered on using
+            the concepts-kwarg. For instance, if you filter on 'animal'
+            (concepts = "https://sensingclues.poolparty.biz/SCCSSOntology/186"),
+            you will also obtain entries for e.g. 'hippo' (which is an 'animal')
+            if include_subconcepts is True. Default is True.
 
-        :param groups: Name(s) of groups to query from,
-        e.g. "focus-project-7136973". TODO: check if both str and list allowed.
-        :return: Df containing the observations according to the filters
+        :returns: Dataframe with observations according to the query parameters
+        specified in kwargs (if any).
         """
         col_trans = {
             "label": "conceptLabel"
@@ -169,12 +176,12 @@ class WildcatApi:
                                data_type=["observation"],
                                extractor_name="observation_extractor",
                                )
-        # Extra filter implementation 
-        # If you filter  on concepts other concepts from an observation that had the 
-        # filtered concept are returned. So do another filtering 
+
         concepts = kwargs.get("concepts", None)
-        if concepts is not None:
-            df = df.loc[df["conceptId"] == concepts]
+        if concepts is not None and df.shape[0] > 0:
+            if not include_subconcepts:
+                df = df.loc[df["conceptId"] == concepts]
+
         df = df.rename(columns=col_trans)
         return df
 
@@ -183,9 +190,6 @@ class WildcatApi:
             groups,
             data_type,
             extractor_name,
-            bounds={"north": 90, "east": 180, "west": -179, "south": -89},
-            from_date="1900-01-01",
-            to_date="9999-12-31",
             _page_length=10,
             **kwargs  # extra args for make_query such as begin and end time
 
@@ -203,10 +207,7 @@ class WildcatApi:
         extr = DataExtractor(extractor_name)
         # fix timestamp!!
         while extra_request:  # while loop so first call can directly be used
-            query = make_query(bounds=bounds,
-                               date_to=to_date,
-                               date_from=from_date,
-                               data_type=data_type,
+            query = make_query(data_type=data_type,
                                groups=groups,
                                page_length=_page_length,
                                page_nbr=page_nbr,

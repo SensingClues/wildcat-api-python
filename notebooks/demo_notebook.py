@@ -54,8 +54,7 @@ api_call = WildcatApi(username, password)
 api_call.login(username, password)
 
 # +
-# It is not necessarily per se to to log out, 
-# but you can do so by calling:
+# It is not necessary to log out, but you can do so by calling:
 # api_call.logout()
 # -
 
