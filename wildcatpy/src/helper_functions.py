@@ -14,7 +14,7 @@ DEFAULT_DT_FORMAT = {
     'time_until': "%H:%M:%S%z",
 }
 
-COORDS_PRECISION_LIMIT = 4
+COORD_PRECISION_LIMIT = 4
 
 
 def make_query(data_type: Union[str, list] = None,
@@ -22,7 +22,7 @@ def make_query(data_type: Union[str, list] = None,
                operator: Union[str, list] = 'intersects',
                # query_text: str = None,
                concepts: str = None,
-               coords: dict = None,
+               coord: dict = None,
                date_from: str = None,
                date_until: str = None,
                time_from: str = "00:00:00-00:00",
@@ -36,37 +36,40 @@ def make_query(data_type: Union[str, list] = None,
     allows for all possible filters via its kwargs.
 
     TODO:
-     - Set correct default values for kwargs
-     - Complete description for each kwarg
-     - Create asserts on kwargs
+     - query_text
+     - page_nbr
+     - page_length
+     - operation
+     - data_type (which options?)
 
-    :param data_type: type of data to extract. Level 0 of hierarchy in Focus.
+
+    :param data_type: Type of data to extract. Level 0 of hierarchy in Focus.
         Must be one of ['observation', 'track']. Default is None, in which
         case data_type is set to ['observation', 'track'].
     :param groups: Names of groups to query from, e.g. "focus-project-7136973".
         Default is None.
-    :param operator: operation to perform in the query.
+    :param operator: Operation to perform in the query.
         Default is "intersects" (currently the only implemented option).
     :param concepts: Concept to search for, e.g. 'animal', specified as a Pool
         Party URL, e.g. "https://sensingclues.poolparty.biz/SCCSSOntology/186".
-    :param query_text: specify query text manually, e.g."entityId: 'exampleC'".
+    :param query_text: Specify query text manually, e.g."entityId: 'exampleC'".
         TODO: do not include in make_query for now, does not work yet.
          - Check how the input should look like.
          - Check if query_text is additional or overwrites other kwargs.
-    :param coords: dictionary with coordinates, e.g.
+    :param coord: Dictionary with coordinates, e.g.
         {"north": 90, "south": -40, "west": 10, "east": 90}. Default is None.
-    :param date_from: start date to filter data on. Required format is
+    :param date_from: Start date to filter data on. Required format is
         'YYYY-mm-dd'. Default is None.
-    :param date_until: end date to filter data on. Required format is
+    :param date_until: End date to filter data on. Required format is
         'YYYY-mm-dd'. Default is None.
-    :param time_from: start time on date_from to filter data on.
+    :param time_from: Start time on date_from to filter data on.
         Data for which the timestamp >= {date_from}{time_from} is returned.
         Default is "00:00:00-00:00", i.e. the start of the day at UTC.
-    :param time_until: end time on date_until to filter data on.
+    :param time_until: End time on date_until to filter data on.
         Data for which the timestamp < {date_from}{time_from} is returned, i.e.
         the filter excludes the exact time of time_until itself.
         Default is "23:59:59-00:00", i.e. the end of the day at UTC.
-    :param page_nbr: page number to start at. If both page_nbr and page_length
+    :param page_nbr: Page number to start at. If both page_nbr and page_length
         are set, page_nbr = page_nbr * page_length + 1. Default is 1.
     :param page_length: Length of a page. Default is 0. TODO: meaning?
 
@@ -83,8 +86,8 @@ def make_query(data_type: Union[str, list] = None,
     if not data_type:
         data_type = DEFAULT_DATA_TYPES
 
-    if coords:
-        check_coordinates(coords)
+    if coord:
+        check_coordinates(coord)
 
     for dt_var in DEFAULT_DT_FORMAT.keys():
         if eval(dt_var):
@@ -101,7 +104,7 @@ def make_query(data_type: Union[str, list] = None,
     # Location of each variable in the nested query dictionary to be created.
     # To implement new vars, just add (<varname, [<cols><in><final><dict>])
     query_template = [
-        (coords, ["filters", "geoQuery", "mapCoords"]),
+        (coord, ["filters", "geoQuery", "mapCoords"]),
         (operator, ["filters", "geoQuery", "operator"]),
         (datetime_from, ["filters", "dateTimeRange", "from"]),
         (datetime_until, ["filters", "dateTimeRange", "to"]),
@@ -161,7 +164,7 @@ def make_nested_dict(value: Any,
     return output_dict
 
 
-def check_coordinates(coords: dict) -> dict:
+def check_coordinates(coord: dict) -> dict:
     """Check if coordinates are in accepted range
 
     Do so to ensure that MarkLogic does not return zero results.
@@ -170,8 +173,8 @@ def check_coordinates(coords: dict) -> dict:
     The precision used when querying Focus/Cluey is 4 decimals currently.
     Warn the user if more precise coordinates are specified.
 
-    :param coords: dictionary with north, south, east, west coords in degrees.
-    :returns: dictionary in which the coordinates have been sorted.
+    :param coord: Dictionary with north, south, east, west coordinates in degrees.
+    :returns: Dictionary in which the coordinates have been sorted.
     """
     # specify required order of boundaries and their limit
     reqs = {
@@ -183,40 +186,40 @@ def check_coordinates(coords: dict) -> dict:
     }
 
     err_msg = f"Coordinates are required for north, east, south and west, " \
-              f"but you only specified coordinates for {list(coords.keys())}"
-    assert all([c in coords.keys() for c in reqs.keys()]), err_msg
+              f"but you only specified coordinates for {list(coord.keys())}"
+    assert all([c in coord.keys() for c in reqs.keys()]), err_msg
 
     err_msg = f'All coordinates should be of a numeric type'
-    assert all([isinstance(v, (int, float)) for v in coords.values()]), err_msg
+    assert all([isinstance(v, (int, float)) for v in coord.values()]), err_msg
 
     err_msg = 'Coordinate for north should be larger or equal to south'
-    assert coords['north'] >= coords['south'], err_msg
+    assert coord['north'] >= coord['south'], err_msg
 
     err_msg = 'Coordinate for east should be larger than or equal to west'
-    assert coords['east'] >= coords['west'], err_msg
+    assert coord['east'] >= coord['west'], err_msg
 
     for c, rule in reqs.items():
         limit, ops = rule
-        v = coords[c]
+        v = coord[c]
         assert ops(v, limit), f'"{c}"-coordinate is {v} ' \
                               f'and exceeds limit {limit}'
 
-    for c, v in coords.items():
+    for c, v in coord.items():
         n_dec = str(v)[::-1].find('.')
-        if n_dec > COORDS_PRECISION_LIMIT:
+        if n_dec > COORD_PRECISION_LIMIT:
             warn_msg = (
                 f'The precision of coordinates used in query is limited'
-                f' to {COORDS_PRECISION_LIMIT} decimals, while you specified'
+                f' to {COORD_PRECISION_LIMIT} decimals, while you specified'
                 f' {n_dec} for "{c}" ({v}). Note that digits beyond '
-                f'{COORDS_PRECISION_LIMIT} will be ignored.'
+                f'{COORD_PRECISION_LIMIT} will be ignored.'
             )
             warnings.warn(warn_msg)
 
-    sorted_coords = dict()
+    sorted_coord = dict()
     for c in reqs.keys():
-        sorted_coords[c] = coords[c]
+        sorted_coord[c] = coord[c]
 
-    return sorted_coords
+    return sorted_coord
 
 
 def recursive_get_from_dict(nested_dict: dict, keys: list) -> Any:
@@ -226,9 +229,9 @@ def recursive_get_from_dict(nested_dict: dict, keys: list) -> Any:
     itself until the deepest level of the nested dictionary is reached,
     upon which the value for the corresponding key is returned.
 
-    :param nested_dict: (nested) dictionary to select elements from.
-    :param keys: list of keys in a nested dictionary
-    :returns: value for deepest level in dictionary, or a call
+    :param nested_dict: (Nested) dictionary to select elements from.
+    :param keys: List of keys in a nested dictionary
+    :returns: Value for deepest level in dictionary, or a call
         to this same function if the deepest level has not yet been reached.
     """
     head, *tail = keys
@@ -241,9 +244,9 @@ def recursive_get_from_dict(nested_dict: dict, keys: list) -> Any:
 def validate_datetime(dt_val: str, dt_name: str, dt_format: str):
     """Validate format of a date or time
 
-    :param dt_val: date/time to evaluate
-    :param dt_format: format the date/time should adhere to.
-    :param dt_name: name or description of the date/time to evaluate.
+    :param dt_val: Date or time to evaluate
+    :param dt_format: Format the date/time should adhere to.
+    :param dt_name: Name or description of the date/time to evaluate.
     :raises: ValueError, TypeError
     """
 

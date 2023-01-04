@@ -8,7 +8,6 @@ import pandas as pd
 import requests
 
 from wildcatpy.src import (
-    DataCleaner,
     DataExtractor,
     make_query,
 )
@@ -108,8 +107,7 @@ class WildcatApi:
         r = self._api_call("post", url_addition, payload)
         extr = DataExtractor("groups_extractor")
         data = extr.extr(r.json())
-        cleaner = DataCleaner(data)
-        df = cleaner.list_to_pd()
+        df = pd.DataFrame(data)
 
         df = df[['name', 'value', 'count']]
         df = df.rename(columns={
@@ -218,12 +216,12 @@ class WildcatApi:
                 if nbr_pages == 0:
                     break
             data = extr.extr(r.json())
-            cleaner = DataCleaner(data)
-            output_data.extend(cleaner.get_list_dict())
+            output_data.extend(data)
             if page_nbr == nbr_pages:
                 break
             page_nbr += 1
-        return DataCleaner(output_data).list_to_pd()
+            df = pd.DataFrame(output_data)
+        return df
 
     def add_geojson_to_track(self, metadata_input: pd.DataFrame) -> pd.DataFrame:
         """
