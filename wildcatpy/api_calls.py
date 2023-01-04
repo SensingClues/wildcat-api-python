@@ -106,7 +106,7 @@ class WildcatApi:
         )
         r = self._api_call("post", url_addition, payload)
         extr = DataExtractor("groups_extractor")
-        data = extr.extr(r.json())
+        data = extr.extract_data(r.json())
         df = pd.DataFrame(data)
 
         df = df[['name', 'value', 'count']]
@@ -215,7 +215,7 @@ class WildcatApi:
                 nbr_pages = math.ceil(r.json()["total"] / _page_length)
                 if nbr_pages == 0:
                     break
-            data = extr.extr(r.json())
+            data = extr.extract_data(r.json())
             output_data.extend(data)
             if page_nbr == nbr_pages:
                 break
@@ -280,7 +280,7 @@ class WildcatApi:
                         for key in output["models"].keys()]
 
         extractor = DataExtractor("all_layers")
-        extracted_output = extractor.extr(layer_output)
+        extracted_output = extractor.extract_data(layer_output)
         df = pd.DataFrame(extracted_output) \
             .rename(columns=cols_to_rename)
 
@@ -330,7 +330,7 @@ class WildcatApi:
         # TODO: do we even need the other details?
         output = r.json()
         extr = DataExtractor("layer_features")
-        extr_output = extr.extr(output, nested_col_names=True)
+        extr_output = extr.extract_data(output, nested_col_names=True)
         df = pd.DataFrame(extr_output)
         gdf = pd.concat([gdf, df], axis=1)
 

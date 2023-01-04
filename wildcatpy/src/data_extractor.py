@@ -1,115 +1,162 @@
 import json
 import pkg_resources
-from wildcatpy.src.helper_functions import *
+from typing import List
+from wildcatpy.src import (
+    flatten_list,
+    recursive_get_from_dict,
+)
 
 data_path = pkg_resources.resource_filename('wildcatpy', 'extractors/')
 
-
-def extr_trans(extr, full_key=None):
-    """
-    Translates extractor given by user to something readable by code
-    Output gives the full key: What are the nested keys we have to go through
-                     columns: Which columns to extract from this full key
-
-    """
-    if full_key is None:  # first (non recursive) call the full key is None and make it empty
-        full_key = []
-    for key, value in extr.items():
-        if key.isnumeric():  # check bc there can be integers
-            key = int(key)
-        if type(value) is dict:  # if value is another dict make recursive call
-            yield from extr_trans(value, full_key + [key])  # for every item in value make call
-        else:
-            yield (full_key + [key], value)
+DEFAULT_EXTRACTION_TYPES = [
+    'extract_values',
+    'explode_values',
+]
 
 
-def extr_row(row, extr, nested_col_names):
-    extr_val, expl_val = {}, []
-    for val in extr:
-        *cols, type_extr = val["full_key"]  # get the columns to loop though and type lookup
-        nested_names = "_".join([str(_) for _ in cols])
-        # extract everything till reach the level we start extracting
-        find_cols = val["columns"]
-        filt_data = recursive_get_from_dict(row, cols) if len(cols) > 0 else row
-        if type_extr == "extract_values":  # lookup type 1: Just simply get the variable
-            extr_val = {**extr_val,
-                        **{nested_names + "_" + key if nested_col_names else key:
-                               filt_data.get(key, False) for key in find_cols}}
-        # Lookup type 2 explode_values
-        # This means that the cols give back a list 
-        # Which contains a list of dictionaries. Those dictionaries should be exploded
-        # We make a list of dictionaries with all the colums from the extracter that we can find
-        # Later on those have to be exploded
-        elif type_extr == "explode_values":
-            # I use row.get(col,None) != None instead of row.get(col,False) because we can found a 0 which
-            # which is similar to False. So then we lose values
-            expl_val.extend([{nested_names + "_" + col if nested_col_names else col: row[col]
-                              for col in find_cols if row.get(col, None) != None}
-                             for row in filt_data])
-    # in case no exploded values need to be searched it cannot be empty
-    # becasue the combination code would give an empty dict
-    # so check if exlo is empty and make non empty without data if it is 
-    if len(expl_val) == 0:
-        expl_val = [{}]
-    # Over here the extract_values and exploded_values are combined
-    # The data is not on the same level yet, extract_values = {} and expl_val =[{}]
-    # However, every dict in the list of expl_val is related to all the data in extract_values
-    # Moreover, we make one dict (row) that contains all extract_values and one dict from expl_val
-    # So, even do we only handle one row of input data the output can be multiple rows due to explode_cols
-    return [{**extr_val, **add} for add in expl_val]
+class DataExtractor(object):
+    """Extract specific elements from raw data returned by calls to Focus/Cluey.
 
+    The elements to extract are specified in local JSON files, located in
+    /wildcatpy/extractors/.
 
-check_nested = lambda x: any(isinstance(y, dict) for y in x.values())
+    N.B. If you want to extract different elements, e.g. because you are
+    developing a new method for the WildcatApi-class, you can add your own
+    json-files, without modifying this DataExtractor-class.
 
-
-class DataExtractor:
-    """
-    This class extracts data from raw input based on a json input file.
-    Moreover, we have an json file that is easy to read and update and this file is 
-    used to extract the correct data from the raw input. This has two advantages: 
-        1. Updates in the output data can be easily implemented in the json which is readible 
-           by everyone. <-- update this ... 
-        2. No code updates needed for data changes. Just change the input json 
-        3. Easily implementing new funcions. We don't have to manually program but just give a json
-
-    This extractor does a couple of things: 
-        1. Read the converter based on the name given! Converters need to be put in the wildcatpy/extractors
-           folder!! 
-        2. Before we can use the data extractor we have to convert it from human readible
-           to computer readible
-        3. Provide functionality to convert raw data to output data 
     """
 
-    def __init__(self, extractor_name):
-        self.extr_name = extractor_name
-        self.ext_path = data_path + extractor_name + ".json"
-        self._ext_info = self.get_ext_raw(self.ext_path)
-        self._ext_clean = self.get_ext_clean(self._ext_info["extractor"])
-        self._ext_data_path = self._ext_info["cols_to_data"]
+    def __init__(self, extractor_name: str):
+        """Read and process extractor configuration
 
-    def get_ext_raw(self, ext_path: str):
-        """
-        Get the raw extractor
-        """
-        with open(ext_path, "r") as f:
-            return json.load(f)
+        Extractor configurations should all be located in wildcatpy/extractors/.
 
-    def get_ext_clean(self, ext_raw):
-        return [{"full_key": key, "columns": value} for key, value in extr_trans(ext_raw)]
-
-    def extr(self, data, nested_col_names=False):
+        :param extractor_name: Name of extractor configuration to use.
         """
+        self.extractor_name = extractor_name
+        self.extractor_path = data_path + extractor_name + ".json"
+        self.extractor_cfg = get_extractor_cfg(self.extractor_path)
+        self._ext_clean = process_extractor_cfg(self.extractor_cfg["extractor"])
+        self._ext_cols_to_data = self.extractor_cfg["cols_to_data"]
 
+    def extract_data(
+            self,
+            data: dict,
+            nested_col_names: bool = False
+            ) -> List[dict]:
+        """Extract data using extractor configuration
+
+        :param data: Dictionary containing data from Focus/Cluey.
+        :param nested_col_names: Boolean indicating if columns to extract
+            are nested. Default is False, in which case original column names
+            are used in the output.
+        :returns: List of dictionaries, which contains the records in the data.
         """
-        # only if we need to go deeper in data recursive_get_from_dict should be called
-        # Otherwise it's called without arguments and crashes
-        if len(self._ext_data_path) > 0:
-            data = recursive_get_from_dict(data, self._ext_data_path)
-        # it can happen that only one row of data is given
-        # So no list of dicts but only one dict
-        # Put it in a list so the code doesn't start iterating a dict
+        # cols_to_data indicates if requested data is located deeper in dict.
+        if len(self._ext_cols_to_data) > 0:
+            data = recursive_get_from_dict(data, self._ext_cols_to_data)
+
+        # ensure that a single row of data is also placed in a list
         if isinstance(data, dict):
             data = [data]
-        # Iterate through dataset extract for every row
-        # flatten with sum 
-        return sum([extr_row(row, self._ext_clean, nested_col_names) for row in data], [])
+
+        # iterate through each row (which is a dictionary) in the extracted data
+        output_data = [extract_row(row, self._ext_clean, nested_col_names)
+                       for row in data]
+
+        return flatten_list(output_data)
+
+
+def extract_row(
+        row: dict,
+        extractor: List[dict],
+        nested_col_names: bool,
+) -> List[dict]:
+    """Extract requested data from a row in the full dataset
+
+    Note that the output may contain multiple records (when extraction_type =
+    'explode_values'), although the input was only one row of the original data.
+
+    :param row: Dictionary with data
+    :param extractor: List of dictionaries specifying where in the dataset
+        ('full_key') to extract which data from ('columns').
+    :param nested_col_names: Boolean indicating if columns to extract are nested.
+    """
+
+    extr_val = {}
+    expl_val = []
+    for val in extractor:
+        *nested_keys, extraction_type = val["full_key"]
+        nested_names = "_".join([str(_) for _ in nested_keys])
+
+        find_cols = val["columns"]
+        data = recursive_get_from_dict(row, nested_keys) \
+            if len(nested_keys) > 0 else row
+        if extraction_type == "extract_values":
+            # simple extraction type, data can be extracted directly.
+            extr_val = {
+                **extr_val,
+                **{"_".join([nested_names, col]) if nested_col_names else col:
+                   data[col] for col in find_cols if col in data.keys()}
+            }
+        elif extraction_type == "explode_values":
+            # more complex extraction type, data consists of a list of dicts.
+            # these dictionaries are exploded to get actual values.
+            expl_val.extend([
+                {"_".join([nested_names, col]) if nested_col_names else col:
+                 record[col] for col in find_cols if col in record.keys()}
+                for record in data
+            ])
+        else:
+            err_msg = (f'extraction_type should be one of '
+                       f'{DEFAULT_EXTRACTION_TYPES}, but is {extraction_type}.')
+            raise NotImplementedError(err_msg)
+
+    # ensure expl_val is non-empty to enable combination with extr_val
+    if len(expl_val) == 0:
+        expl_val = [{}]
+
+    # note that the output may contain multiple records (in expl_val),
+    # although the input was only one row of the original data.
+    return [{**extr_val, **record} for record in expl_val]
+
+
+def get_extractor_cfg(extractor_path: str) -> dict:
+    """Get extraction configuration from local JSON-file
+
+    :param extractor_path: Location of JSON-file with extraction configuration.
+    :returns: Dictionary with extraction configuration.
+    """
+    with open(extractor_path, "r") as f:
+        return json.load(f)
+
+
+def process_extractor_cfg(extractor_cfg: dict) -> List[dict]:
+    """Process extractor configuration
+    
+    :param extractor_cfg: Raw configuration for data to extract from Focus.
+    :returns: Processed configuration of extraction, usable by extract_data().
+    """
+    return [{"full_key": key, "columns": columns}
+            for key, columns in translate_extractor_cfg(extractor_cfg)]
+
+
+def translate_extractor_cfg(extractor: dict, full_key: list = None) -> tuple:
+    """Translate extraction configuration to list of columns to extract
+
+    :param extractor: Dictionary with data to extract
+    :param full_key: Initial list of keys specifying the starting location
+        in a (nested) dict for which to return its value.
+    :returns: Tuple with a list of keys specifying the location in a
+        nested dict and value representing a list of fields to extract data for.
+    """
+    if full_key is None:
+        full_key = []
+    for key, value in extractor.items():
+        if key.isnumeric():
+            key = int(key)
+        if isinstance(value, dict):
+            # recursive call if value is of type dictionary
+            yield from translate_extractor_cfg(value, full_key + [key])
+        else:
+            yield full_key + [key], value

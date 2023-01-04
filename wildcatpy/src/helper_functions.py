@@ -20,7 +20,7 @@ COORD_PRECISION_LIMIT = 4
 def make_query(data_type: Union[str, list] = None,
                groups: Union[str, list] = None,
                operator: Union[str, list] = 'intersects',
-               # query_text: str = None,
+               query_text: str = None,
                concepts: str = None,
                coord: dict = None,
                date_from: str = None,
@@ -53,7 +53,7 @@ def make_query(data_type: Union[str, list] = None,
     :param concepts: Concept to search for, e.g. 'animal', specified as a Pool
         Party URL, e.g. "https://sensingclues.poolparty.biz/SCCSSOntology/186".
     :param query_text: Specify query text manually, e.g."entityId: 'exampleC'".
-        TODO: do not include in make_query for now, does not work yet.
+        TODO: Already used in add_geojson_to_track, but functionality not clear.
          - Check how the input should look like.
          - Check if query_text is additional or overwrites other kwargs.
     :param coord: Dictionary with coordinates, e.g.
@@ -113,7 +113,7 @@ def make_query(data_type: Union[str, list] = None,
         (groups, ["filters", "dataSources"]),
         (page_nbr, ["options", "start"]),
         (page_length, ["options", "pageLength"]),
-        # (query_text, ["filters", "queryText"]),  # TODO
+        (query_text, ["filters", "queryText"]),
     ]
 
     query_input = [var for var in query_template if var[0] is not None]
@@ -239,6 +239,11 @@ def recursive_get_from_dict(nested_dict: dict, keys: list) -> Any:
         return recursive_get_from_dict(nested_dict[head], tail)
     else:
         return nested_dict[head]
+
+
+def check_nested_dict(x: dict) -> bool:
+    """Check if any of the values in a dictionary are themselves a dictionary"""
+    return any(isinstance(y, dict) for y in x.values())
 
 
 def validate_datetime(dt_val: str, dt_name: str, dt_format: str):
