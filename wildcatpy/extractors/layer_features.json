@@ -3,7 +3,7 @@
   "extractor": {
     "extract_values": [
       "type",
-      "Id"
+      "id"
     ],
     "geometry": {
       "extract_values": [
@@ -19,6 +19,11 @@
          "EntityId",
          "Id",
          "name",
+         "NAME",
+         "Names",
+         "city",
+         "country",
+         "province",         
          "Shape_Leng",
          "Shape_Area",
          "name_2",
@@ -29,8 +34,7 @@
          "Acre",
          "Hectare",
          "shape_le_2",
-         "shape_ar_2",
-         "Names"
+         "shape_ar_2"
        ]
      }
   }

@@ -1,6 +1,8 @@
+"""Module to extract specific elements from raw Focus data"""
+
 import json
 import pkg_resources
-from typing import List
+from typing import List, Union
 from wildcatpy.src import (
     flatten_list,
     recursive_get_from_dict,
@@ -15,7 +17,7 @@ DEFAULT_EXTRACTION_TYPES = [
 
 
 class DataExtractor(object):
-    """Extract specific elements from raw data returned by calls to Focus/Cluey.
+    """Extract specific elements from raw data returned by calls to Focus.
 
     The elements to extract are specified in local JSON files, located in
     /wildcatpy/extractors/.
@@ -23,6 +25,9 @@ class DataExtractor(object):
     N.B. If you want to extract different elements, e.g. because you are
     developing a new method for the WildcatApi-class, you can add your own
     json-files, without modifying this DataExtractor-class.
+
+    N.B. This class currently only has 1 method, so it could be a function.
+    We kept it as a class for now, as its functionality may be extended later.
 
     """
 
@@ -41,12 +46,12 @@ class DataExtractor(object):
 
     def extract_data(
             self,
-            data: dict,
+            data: Union[dict, List[dict]],
             nested_col_names: bool = False
             ) -> List[dict]:
         """Extract data using extractor configuration
 
-        :param data: Dictionary containing data from Focus/Cluey.
+        :param data: Dictionary containing data from Focus.
         :param nested_col_names: Boolean indicating if columns to extract
             are nested. Default is False, in which case original column names
             are used in the output.
@@ -83,8 +88,8 @@ def extract_row(
     :param nested_col_names: Boolean indicating if columns to extract are nested.
     """
 
-    extr_val = {}
-    expl_val = []
+    extract_vals = {}
+    explode_vals = []
     for val in extractor:
         *nested_keys, extraction_type = val["full_key"]
         nested_names = "_".join([str(_) for _ in nested_keys])
@@ -94,15 +99,15 @@ def extract_row(
             if len(nested_keys) > 0 else row
         if extraction_type == "extract_values":
             # simple extraction type, data can be extracted directly.
-            extr_val = {
-                **extr_val,
+            extract_vals = {
+                **extract_vals,
                 **{"_".join([nested_names, col]) if nested_col_names else col:
                    data[col] for col in find_cols if col in data.keys()}
             }
         elif extraction_type == "explode_values":
             # more complex extraction type, data consists of a list of dicts.
             # these dictionaries are exploded to get actual values.
-            expl_val.extend([
+            explode_vals.extend([
                 {"_".join([nested_names, col]) if nested_col_names else col:
                  record[col] for col in find_cols if col in record.keys()}
                 for record in data
@@ -112,13 +117,13 @@ def extract_row(
                        f'{DEFAULT_EXTRACTION_TYPES}, but is {extraction_type}.')
             raise NotImplementedError(err_msg)
 
-    # ensure expl_val is non-empty to enable combination with extr_val
-    if len(expl_val) == 0:
-        expl_val = [{}]
+    # ensure explode_vals is non-empty to enable combination with extract_vals
+    if len(explode_vals) == 0:
+        explode_vals = [{}]
 
-    # note that the output may contain multiple records (in expl_val),
+    # note that the output may contain multiple records (in explode_vals),
     # although the input was only one row of the original data.
-    return [{**extr_val, **record} for record in expl_val]
+    return [{**extract_vals, **record} for record in explode_vals]
 
 
 def get_extractor_cfg(extractor_path: str) -> dict:

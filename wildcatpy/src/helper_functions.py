@@ -170,7 +170,7 @@ def check_coordinates(coord: dict) -> dict:
     Do so to ensure that MarkLogic does not return zero results.
     The coordinates are always sorted in order north, south, east, west.
 
-    The precision used when querying Focus/Cluey is 4 decimals currently.
+    The precision used when querying Focus is 4 decimals currently.
     Warn the user if more precise coordinates are specified.
 
     :param coord: Dictionary with north, south, east, west coordinates in degrees.
