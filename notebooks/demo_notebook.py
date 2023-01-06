@@ -54,8 +54,7 @@ api_call = WildcatApi(username, password)
 api_call.login(username, password)
 
 # +
-# It is not necessarily per se to to log out, 
-# but you can do so by calling:
+# It is not necessary to log out, but you can do so by calling:
 # api_call.logout()
 # -
 
@@ -86,7 +85,7 @@ observations.head()
 #
 # TODO: provide detailed instructions.
 
-tracks = api_call.track_extractor(groups=groups,end_time="T23:59:54-00:00")
+tracks = api_call.track_extractor(groups=groups, time_until="23:59:54-00:00")
 
 tracks.head()
 

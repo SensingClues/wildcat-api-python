@@ -1,37 +1,39 @@
-"""Class to clean data in WildcatApi"""
+"""Helper functions to clean data in WildcatApi"""
 
-import pandas as pd
 import pkg_resources
-from wildcatpy.src import (
-    recursive_get_from_dict,
-)
+from typing import List
 
 data_path = pkg_resources.resource_filename('wildcatpy', 'extractors/')
 
 
-class DataCleaner:
-    # TODO: Docstrings for class and each method
-    def __init__(self, input_data):
-        self.input_data = input_data
-        self.data = input_data
+def flatten_list(nested_list: list) -> list:
+    """Flatten a nested list into a new list
 
-    def deeper_in_nested(self, keys):
-        self.data = recursive_get_from_dict(self.data, keys)
+    :param nested_list: A (potentially) nested list
+    :returns: A list containing all the elements in the original list
+    """
+    return [item for sublist in nested_list for item in sublist]
 
-    def select_columns(self, keep_cols):
-        self.data = [
-            {key: item} for row in self.data for key, item in row.items()
-            if key in keep_cols
-        ]
 
-    def list_to_pd(self):
-        return pd.DataFrame(self.data)
+def get_list_values(data: List[dict]):
+    """Get values of dictionaries in a list
 
-    def flatten_data(self):
-        self.data = sum(self.data, [])
+    :param data: List of dictionaries with keys representing columns in data
+        extracted from Focus.
+    :returns: List of lists with the values in the dictionaries in the data.
+    """
+    return [list(row.values()) for row in data]
 
-    def get_list_dict(self):
-        return self.data
 
-    def get_list_values(self):
-        return [[_ for _ in row.values()] for row in self.data]
+def select_columns(data: List[dict], keep_cols: list) -> List[dict]:
+    """Select columns in a list of dictionaries
+
+    :param data: List of dictionaries with keys representing columns in data
+        extracted from Focus.
+    :param keep_cols: List of columns (keys) in data to keep.
+    :returns: List of dictionaries for keys in keep_cols.
+    """
+    return [
+        {key: item} for row in data for key, item in row.items()
+        if key in keep_cols
+    ]

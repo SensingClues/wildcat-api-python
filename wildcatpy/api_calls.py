@@ -1,83 +1,46 @@
 """Main WildcatApi-class"""
 
+import copy
 import geopandas
 import io
 import math
 import numpy as np
 import pandas as pd
 import requests
+from typing import Union
 
 from wildcatpy.src import (
-    DataCleaner,
     DataExtractor,
     make_query,
 )
 
+FOCUS_BASE_URL = "https://focus.sensingclues.org/api/"
+
+ALLOWED_REQUEST_TYPES = ['post', 'get']
 DEFAULT_EXCLUDE_PIDS = ['track', 'default']
 
 
-class WildcatApi:
+class WildcatApi(object):
     """Class to extract various types of SensingClues-data"""
 
     def __init__(self, user_name: str, password: str):
-        """
-        Automatically login when initiate class
-        :param user_name: Username for focus
-        :param password: Password for focus
+        """Automatically log in when initiating class
+
+        :param user_name: Username for Focus
+        :param password: Password for Focus
         """
         self.session = requests.Session()
         self.login(user_name, password)
 
-    def _api_call(self,
-                  action,
-                  url_addition,
-                  payload: dict = None):
-        """Main method to make requests from Focus/Cluey
-
-        This method can be called by all methods available in WildcatApi
-
-        :param action: Type of request, currently post or get
-        :param url_addition: what to add to the base url
-        :param payload: the payload that has to be sent
-        :return:
-        """
-
-        url = "https://focus.sensingclues.org/api/" + url_addition
-        request_trans = {
-            "post": self.session.post,
-            "get": self.session.get
-        }
-        extra_args = {
-            "headers": {'Content-type': 'application/json'}
-        }
-        if payload:
-            extra_args["json"] = payload
-
-        r = request_trans[action](
-            url,
-            **extra_args
-        )
-        # add extra status codes
-        if r.status_code == 200:
-            pass  # print(f"req to {url} success")
-        elif r.status_code == 204:
-            print(f"req to {url}, sucessfull logout")  # only seen by logout
-        elif r.status_code == 404:
-            raise TypeError(f"unknown url {url}")
-        elif r.status_code == 405:
-            raise TypeError(f"Check post/get for url {url}")
-        else:
-            raise TypeError(f"Unknow error {str(r.status_code)}, {r.json()} ")
-        return r
-
-    def login(self, username: str, password: str):
-        """Function to log in to Focus/Cluey
+    def login(self, username: str, password: str) -> requests.models.Response:
+        """Function to log in to Focus
 
         Login is done automatically when initiating the WildcatApi-class.
         
         :param username: Username for focus
         :param password: Password for focus
-        :return: Api call result
+
+        :return: The response to the request made to Focus.
         """
 
         url_addition = "auth/login"
@@ -87,169 +50,136 @@ class WildcatApi:
         }
         return self._api_call("post", url_addition, payload)
 
-    def logout(self):
-        """Function to log out of Focus/Cluey
+    def logout(self) -> requests.models.Response:
+        """Function to log out of Focus
 
-        :return: Api call result
+        :return: The response to the request made to Focus.
 
         """
         url_addition = "auth/logout"
         return self._api_call("post", url_addition, {})
 
     def get_groups(self) -> pd.DataFrame:
-        """
-        Function to get the groups to which the user has access
-        :return: df with groups
+        """Get overview of groups to which the user has access
+
+        :returns: Dataframe with available groups
         """
         url_addition = "search/all/facets"
         payload = make_query(
-            date_from="1900-01-01",
-            date_to="9999-12-31",
-            data_type=["Observation", "track"],
-            page_nbr=1,
-            page_length=0
+            data_type=["observation", "track"],  # TODO: why these types only?
         )
-        r = self._api_call("post", url_addition, payload)
-        extr = DataExtractor("groups_extractor")
-        data = extr.extr(r.json())
-        cleaner = DataCleaner(data)
-        return cleaner.list_to_pd()
+        req = self._api_call("post", url_addition, payload)
+        extractor = DataExtractor("groups_extractor")
+        data = extractor.extract_data(req.json())
+        df = pd.DataFrame(data)
 
-    def _close_session(self):
-        self.session.close()
-
-    def track_extractor(self, groups, **kwargs):
-
-        """
-        Function to acquire tracks data. 
-        This function takes the **kwargs argument. This means that extra arguments can be 
-        added. Those arguments are used to call subfunctions. The allowed extra arguments are added
-        in the parameters. The group argument is mandatory, the rest is optional
-    
-        For an overview of the extra arguments allowed, see
-        the description of make_query in helper functions.
-
-        TODO: Can copy argument-description back here once finalized.
-
-        :param groups: Name(s) of groups to query from,
-        e.g. "focus-project-7136973". TODO: check if both str and list allowed.
-
-        """
-        return self._iterate_api(groups,
-                                 **kwargs,
-                                 data_type=["track"],
-                                 extractor_name="track_extractor",
-                                 )
+        df = df[['name', 'value', 'count']]
+        df = df.rename(columns={
+            'value': 'description',
+            'count': 'n_records',
+        })
+        return df
 
     def observation_extractor(self,
                               groups: str,
+                              include_subconcepts: bool = True,
                               **kwargs) -> pd.DataFrame:
-        """
-        Extract observations 
-        
-        This function takes the **kwargs argument. This means that extra arguments can be 
-        added. Those arguments are used to call subfunctions. The allowed extra arguments are added
-        in the parameters. The group argument is mandatory, the rest is optional
+        """Method to acquire observations data from Focus
 
+        Extra (filter) arguments can be passed to this method via **kwargs.
         For an overview of the extra arguments allowed, see
-        the description of make_query in helper functions.
+        the description of make_query() in helper_functions.py.
 
-        TODO: Can copy argument-description back here once finalized.
+        :param groups: Name(s) of groups to query from, passed as a string
+            or as a list of strings, e.g. "focus-project-7136973".
+        :param include_subconcepts: If filtering on concepts (using the
+            concepts-kwarg), this argument allows you to include or exclude
+            observations related to concepts lower in the hierarchy than the
+            concept you filtered on. For instance, if you filter on 'animal'
+            (concepts = "https://sensingclues.poolparty.biz/SCCSSOntology/186"),
+            you will also obtain entries for e.g. 'hippo' (which is an 'animal')
+            if include_subconcepts is True. Default is True.
 
-        :param groups: Name(s) of groups to query from,
-        e.g. "focus-project-7136973". TODO: check if both str and list allowed.
-        :return: Df containing the observations according to the filters
+        :returns: Dataframe with available observations, in line with the
+            query parameters specified in kwargs (if any).
         """
         col_trans = {
             "label": "conceptLabel"
         }
 
         df = self._iterate_api(groups,
-                               **kwargs,
                                data_type=["observation"],
                                extractor_name="observation_extractor",
+                               **kwargs,
                                )
-        # Extra filter implementation 
-        # If you filter  on concepts other concepts from an observation that had the 
-        # filtered concept are returned. So do another filtering 
+
         concepts = kwargs.get("concepts", None)
-        if concepts is not None:
-            df = df.loc[df["conceptId"] == concepts]
+        if concepts is not None and df.shape[0] > 0:
+            if not include_subconcepts:
+                df = df.loc[df["conceptId"] == concepts]
+
         df = df.rename(columns=col_trans)
         return df
 
-    def _iterate_api(
-            self,
-            groups,
-            data_type,
-            extractor_name,
-            bounds={"north": 90, "east": 180, "west": -179, "south": -89},
-            from_date="1900-01-01",
-            to_date="9999-12-31",
-            _page_length=10,
-            **kwargs  # extra args for make_query such as begin and end time
+    def track_extractor(self,
+                        groups: Union[str, list], **kwargs) -> pd.DataFrame:
+        """Method to acquire tracks data from Focus
 
-    ):
-        """
-        Iterates to df and makes calls <-- update 
-        
-        :param groups: Filter on the group 
-        :param data_type: 
-        """
-        output_data = []
-        extra_request = True
-        first_iter = True
-        page_nbr = 0
-        extr = DataExtractor(extractor_name)
-        # fix timestamp!!
-        while extra_request:  # while loop so first call can directly be used
-            query = make_query(bounds=bounds,
-                               date_to=to_date,
-                               date_from=from_date,
-                               data_type=data_type,
-                               groups=groups,
-                               page_length=_page_length,
-                               page_nbr=page_nbr,
-                               **kwargs)
-            r = self._api_call("post", "search/all/results", query)
-            if first_iter:
-                nbr_pages = math.ceil(r.json()["total"] / _page_length)
-                if nbr_pages == 0:
-                    break
-            data = extr.extr(r.json())
-            cleaner = DataCleaner(data)
-            output_data.extend(cleaner.get_list_dict())
-            if page_nbr == nbr_pages:
-                break
-            page_nbr += 1
-        return DataCleaner(output_data).list_to_pd()
+        Extra (filter) arguments can be passed to this method via **kwargs.
+        For an overview of the extra arguments allowed, see
+        the description of make_query() in helper_functions.py.
 
-    def add_geojson_to_track(self, metadata_input: pd.DataFrame) -> pd.DataFrame:
-        """
-        Takes track metadata and adds geojson to it
+        :param groups: Name(s) of groups to query from, passed as a string
+            or as a list of strings, e.g. "focus-project-7136973".
 
-        :param track_metadata: the output of the track_extractor function 
-        :return: Df containing the tracks with the geojson
+        :returns: Dataframe with available tracks, in line with the
+            query parameters specified in kwargs (if any).
+
         """
-        import copy
-        track_metadata = copy.deepcopy(metadata_input)  # make shallow copy from old dataframe
+        return self._iterate_api(groups,
+                                 data_type=["track"],
+                                 extractor_name="track_extractor",
+                                 **kwargs,
+                                 )
+
+    def add_geojson_to_track(self,
+                             tracks: pd.DataFrame,
+                             precision: int = 3) -> pd.DataFrame:
+        """Add geojson to track metadata
+
+        For each unique route, geojson data is added (if available in Focus).
+
+        :param tracks: Tracks data, as output by the track_extractor-method.
+        :param precision: Number of decimals used to round the length and
+            duration (hours) of the track. Default is 3.
+        :returns: Dataframe with the tracks, including geojson-data.
+        """
+        tracks_meta = copy.deepcopy(tracks)
+
         url_addition = "map/all/track/0/features/"
-        track_metadata["endWhen"] = pd.to_datetime(track_metadata["endWhen"], infer_datetime_format=True)
-        track_metadata["startWhen"] = pd.to_datetime(track_metadata["startWhen"], infer_datetime_format=True)
-        track_metadata["patrolDuration"] = round(
-            (track_metadata["endWhen"] - track_metadata["startWhen"])
-            / pd.Timedelta(hours=1), 3)
-        track_metadata["length"] = round(track_metadata["length"], 3)
-        unique_routes = track_metadata["entityId"].unique()  # only look through unique routes
+
+        tracks_meta["startWhen"] = pd.to_datetime(tracks_meta["startWhen"],
+                                                  infer_datetime_format=True)
+        tracks_meta["endWhen"] = pd.to_datetime(tracks_meta["endWhen"],
+                                                infer_datetime_format=True)
+        tracks_meta["patrolDuration"] = round(
+            (tracks_meta["endWhen"] - tracks_meta["startWhen"])
+            / pd.Timedelta(hours=1), precision)
+        tracks_meta["length"] = round(tracks_meta["length"], precision)
+
+        df = pd.DataFrame()
+        unique_routes = tracks_meta["entityId"].unique()
         for i, entity in enumerate(unique_routes):
             payload = make_query(query_text=f"entityId:'{entity}'")
-            r = self._api_call("post", url_addition, payload)
-            new_df = geopandas.read_file(io.BytesIO(r.content))
-            if i == 0:
-                df = new_df
-            else:
-                df = pd.concat([df, new_df], ignore_index=True, sort=False)
-        return df.merge(track_metadata, how="right", left_on="EntityId", right_on="entityId")
+            req = self._api_call("post", url_addition, payload)
+            df_entity = geopandas.read_file(io.BytesIO(req.content))
+            df = pd.concat([df, df_entity], ignore_index=True, sort=False)
+            
+        tracks_meta = tracks_meta.merge(df,
+                                        how="left",
+                                        left_on="entityId",
+                                        right_on="EntityId")
+        return tracks_meta
 
     def get_all_layers(self,
                        exclude_pids: list = None) -> pd.DataFrame:
@@ -258,7 +188,7 @@ class WildcatApi:
         :param exclude_pids: List of pids to exclude, in addition to
         ['track', 'default'], which are always excluded. Default is None,
         in which case exclude_pids is set to ['track', 'default'].
-        :returns: pd.DataFrame with project id's and layer names
+        :returns: Dataframe with project id's and layer names.
         """
 
         if not exclude_pids:
@@ -273,15 +203,15 @@ class WildcatApi:
         }
         url_addition = "/map/all/describe"
 
-        r = self._api_call("get", url_addition)
-        output = r.json()
+        req = self._api_call("get", url_addition)
+        output = req.json()
 
         # key 'pid' is added to access layers in layer_feature_extractor.
         layer_output = [{**{"pid": key}, **output["models"][key]}
                         for key in output["models"].keys()]
 
         extractor = DataExtractor("all_layers")
-        extracted_output = extractor.extr(layer_output)
+        extracted_output = extractor.extract_data(layer_output)
         df = pd.DataFrame(extracted_output) \
             .rename(columns=cols_to_rename)
 
@@ -292,7 +222,7 @@ class WildcatApi:
                                 project_name: str = None,
                                 project_id: int = None,
                                 layer_id: int = None,
-                                **kwargs):
+                                **kwargs) -> geopandas.GeoDataFrame:
         """Extract details for a specific layer
 
         :param project_name: Name of project to extract layer features for.
@@ -300,10 +230,9 @@ class WildcatApi:
         :param project_id: id of project to extract. Default is None.
         :param layer_id: id of layer to extract. Default is None.
 
-        :returns: geopandas.DataFrame with features of the requested layer
+        :returns: geopandas.DataFrame with features of the requested layer.
 
         """
-
         all_layers = self.get_all_layers(**kwargs)
 
         if project_name:
@@ -322,17 +251,114 @@ class WildcatApi:
                                                                int)), msg
 
         url_addition = f"map/all/{project_id}/{layer_id}/features/"
-
-        r = self._api_call("post", url_addition)
+        req = self._api_call("post", url_addition)
 
         # relevant geometry information can be read using geopandas
-        gdf = geopandas.read_file(io.BytesIO(r.content))
+        gdf = geopandas.read_file(io.BytesIO(req.content))
 
-        # TODO: do we even need the other details?
-        output = r.json()
-        extr = DataExtractor("layer_features")
-        extr_output = extr.extr(output, nested_col_names=True)
-        df = pd.DataFrame(extr_output)
+        # TODO:
+        #  some layers have additional columns, so implement option to extract
+        #  all available information, without using a extractor-json.
+        output = req.json()
+        extractor = DataExtractor("layer_features")
+        data = extractor.extract_data(output, nested_col_names=True)
+        df = pd.DataFrame(data)
         gdf = pd.concat([gdf, df], axis=1)
 
         return gdf
+
+    def _api_call(self,
+                  action: str,
+                  url_addition: str,
+                  payload: dict = None) -> requests.models.Response:
+        """Main method to make requests from Focus
+
+        This method can be called by all methods available in WildcatApi
+
+        :param action: Type of request, currently 'post' or 'get'.
+        :param url_addition: Suffix to base url. Depends on the data requested.
+        :param payload: Arguments to be added to the request, such as
+            date filters. Default is None.
+
+        :returns: The response to the request made to Focus.
+
+        """
+        url = FOCUS_BASE_URL + url_addition
+        request_trans = {
+            "post": self.session.post,
+            "get": self.session.get
+        }
+        extra_args = {
+            "headers": {'Content-type': 'application/json'}
+        }
+        if payload:
+            extra_args["json"] = payload
+
+        err_msg = f'action must be in {ALLOWED_REQUEST_TYPES}, but is {action}'
+        assert action in ALLOWED_REQUEST_TYPES, err_msg
+
+        req = request_trans[action](
+            url,
+            **extra_args
+        )
+        # add extra status codes
+        if req.status_code == 200:
+            # successful request
+            pass
+        elif req.status_code == 204:
+            print(f"Request to {url}, successful logout")
+        elif req.status_code == 404:
+            raise TypeError(f"Unknown url {url}")
+        elif req.status_code == 405:
+            raise TypeError(f"Request type for url {url} must be one of "
+                            f"{ALLOWED_REQUEST_TYPES}")
+        else:
+            raise TypeError(f"Unknown error {str(req.status_code)}, "
+                            f"request returned {req.json()}")
+
+        return req
+
+    def _close_session(self):
+        """Private method to close the session
+
+        N.B. Currently unused.
+        """
+        self.session.close()
+
+    def _iterate_api(
+            self,
+            groups,
+            extractor_name: str,
+            # TODO: why set page_length here instead of make_query?
+            #  what is impact? how does it differ between methods?
+            page_length: int = 10,
+            **kwargs
+    ) -> pd.DataFrame:
+        """Make iterative calls to Focus API to collect requested data
+
+        :param groups: Name(s) of groups to query from, passed as a string
+            or as a list of strings, e.g. "focus-project-7136973".
+        :param extractor_name: Name of extractor configuration to use.
+        :returns: Dataframe with requested data.
+        """
+        output_data = []
+        extractor = DataExtractor(extractor_name)
+        continue_request = True
+        page_nbr = 0  # TODO: check why in make_query, page_nbr is set to 1.
+        while continue_request:
+            query = make_query(groups=groups,
+                               page_length=page_length,
+                               page_nbr=page_nbr,
+                               **kwargs)
+            req = self._api_call("post", "search/all/results", query)
+            nbr_pages = math.ceil(req.json()["total"] / page_length)
+            data = extractor.extract_data(req.json())
+            output_data.extend(data)
+
+            if nbr_pages == 0 or nbr_pages == page_nbr:
+                continue_request = False
+            else:
+                page_nbr += 1
+
+        df = pd.DataFrame(output_data)
+        return df
