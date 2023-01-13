@@ -1,0 +1,12 @@
+{
+  "cols_to_data": [],
+  "extractor": {
+    "extract_values": [
+      "id",
+      "parent",
+      "children",
+      "label",
+      "altLabels"
+    ]
+  }
+}

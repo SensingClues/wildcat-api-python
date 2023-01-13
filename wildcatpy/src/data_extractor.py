@@ -8,6 +8,8 @@ from wildcatpy.src import (
     recursive_get_from_dict,
 )
 
+import pdb
+
 data_path = pkg_resources.resource_filename('wildcatpy', 'extractors/')
 
 DEFAULT_EXTRACTION_TYPES = [
@@ -112,6 +114,7 @@ def extract_row(
                  record[col] for col in find_cols if col in record.keys()}
                 for record in data
             ])
+
         else:
             err_msg = (f'extraction_type should be one of '
                        f'{DEFAULT_EXTRACTION_TYPES}, but is {extraction_type}.')

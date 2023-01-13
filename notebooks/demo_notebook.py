@@ -29,10 +29,13 @@
 # ## Configuration
 
 from wildcatpy.api_calls import WildcatApi
+from wildcatpy.src import helper_functions as helpers
 from dotenv import load_dotenv
 import json
 import os
 import pandas as pd
+
+import pdb
 
 
 load_dotenv()
@@ -72,6 +75,7 @@ groups = "focus-project-7136973"
 # Note that you can control the scope (e.g. coordinates) of these observations in more detail than done here.
 #
 # TODO: provide detailed instructions.
+
 
 observations = api_call.observation_extractor(groups=groups, operator=["intersects"])
 
@@ -120,5 +124,42 @@ for _, geometry in df['geometry'].items():
     folium.GeoJson(geometry).add_to(poly_map)
 folium.LatLngPopup().add_to(poly_map)
 poly_map
+
+
+# ### Get all available concepts and their hierarchy
+#
+# You can 
+
+hierarchy = api_call.get_hierarchy()
+
+hierarchy.info()
+
+# ### Get details for specific concepts in the hierarchy
+#
+# You can get information on children or the parents of a concept in the hierarchy by filtering on its label or id. Use the helper functions to do so. For example, you could do the following for the concept of a "Kite" ("https://sensingclues.poolparty.biz/SCCSSOntology/222"):
+#
+# ```
+# oid = "https://sensingclues.poolparty.biz/SCCSSOntology/222"
+# helpers.get_children_for_id(hierarchy, oid)
+# helpers.get_parent_for_id(hierarchy, oid)
+# helpers.get_label_for_id(hierarchy, oid)
+# ```
+#
+# or, if filtering on a label:
+#
+# ```
+# label = 'Kite'
+# helpers.get_children_for_label(hierarchy, label)
+# helpers.get_parent_for_label(hierarchy, label)
+# helpers.get_id_for_label(hierarchy, label)
+# ```
+#
+# Alternatively, you can also filter the hierarchy-dataframe yourself of course.
+
+oid = "https://sensingclues.poolparty.biz/SCCSSOntology/222"
+helpers.get_label_for_id(hierarchy, oid)
+
+label = 'Kite'
+helpers.get_children_for_label(hierarchy, label)
 
 

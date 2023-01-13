@@ -3,6 +3,7 @@
 import copy
 from datetime import datetime
 import operator as python_ops
+import pandas as pd
 from typing import Any, Union
 import warnings
 
@@ -15,6 +16,66 @@ DEFAULT_DT_FORMAT = {
 }
 
 COORD_PRECISION_LIMIT = 4
+
+
+def filter_dataframe(df: pd.DataFrame,
+                     filters: dict,
+                     return_col: str) -> Any:
+    """Filter a Pandas DataFrame and return values for a single column
+
+    :param df: Data to filter on and extract values from.
+    :param filters: Dictionary with key-value pairs denoting the columns
+        to filter on and the values in these columns to keep.
+    :param return_col: Column for which to return the filtered values.
+    :returns: Filtered values for column return_col. Returns None if no
+        values are left after filtering.
+    """
+
+    assert return_col in df.columns, 'return_col should be in dataframe.'
+    assert all(col in df.columns for col in filters.keys()), \
+        'All filter columns should be in dataframe.'
+    assert all(isinstance(val, (str, list)) for val in filters.values()), \
+        'All filter values should be of type str or list'
+
+    for col, val in filters.items():
+        if isinstance(val, str):
+            val = [val]
+        df = df.loc[df[col].isin(val)]
+
+    if df.shape[0] > 0:
+        return df[return_col].values[0]
+    else:
+        return None
+
+
+def get_children_for_id(df: pd.DataFrame, ontology_id: str) -> Any:
+    """Get children in the hierarchy for a specific ontology id"""
+    return filter_dataframe(df, {'id': ontology_id}, return_col='children')
+
+
+def get_children_for_label(df: pd.DataFrame, label: str) -> Any:
+    """Get children in the hierarchy for a specific label"""
+    return filter_dataframe(df, {'label': label}, return_col='children')
+
+
+def get_id_for_label(df: pd.DataFrame, label: str) -> str:
+    """Get ontology id for a specific label in the hierarchy"""
+    return filter_dataframe(df, {'label': label}, return_col='id')
+
+
+def get_label_for_id(df: pd.DataFrame, ontology_id: str) -> str:
+    """Get ontology label for a specific ontology id in the hierarchy"""
+    return filter_dataframe(df, {'id': ontology_id}, return_col='label')
+
+
+def get_parent_for_id(df: pd.DataFrame, ontology_id: str) -> Any:
+    """Get parents in the hierarchy for a specific ontology id"""
+    return filter_dataframe(df, {'id': ontology_id}, return_col='parent')
+
+
+def get_parent_for_label(df: pd.DataFrame, label: str) -> Any:
+    """Get parents in the hierarchy for a specific label"""
+    return filter_dataframe(df, {'label': label}, return_col='parent')
 
 
 def make_query(data_type: Union[str, list] = None,
@@ -263,3 +324,5 @@ def validate_datetime(dt_val: str, dt_name: str, dt_format: str):
     except TypeError:
         raise TypeError(f'{dt_name} should be of type "str", '
                         f'but is {type(dt_val)}.')
+
+

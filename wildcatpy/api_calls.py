@@ -9,6 +9,8 @@ import pandas as pd
 import requests
 from typing import Union
 
+import pdb
+
 from wildcatpy.src import (
     DataExtractor,
     make_query,
@@ -71,8 +73,8 @@ class WildcatApi(object):
         req = self._api_call("post", url_addition, payload)
         extractor = DataExtractor("groups_extractor")
         data = extractor.extract_data(req.json())
-        df = pd.DataFrame(data)
 
+        df = pd.DataFrame(data)
         df = df[['name', 'value', 'count']]
         df = df.rename(columns={
             'value': 'description',
@@ -212,6 +214,7 @@ class WildcatApi(object):
 
         extractor = DataExtractor("all_layers")
         extracted_output = extractor.extract_data(layer_output)
+
         df = pd.DataFrame(extracted_output) \
             .rename(columns=cols_to_rename)
 
@@ -266,6 +269,30 @@ class WildcatApi(object):
         gdf = pd.concat([gdf, df], axis=1)
 
         return gdf
+
+    def get_hierarchy(self) -> pd.DataFrame:
+        """Get available concepts and their hierarchy
+
+        :returns: Dataframe with available concepts in their hierarchy
+        """
+        url_addition = "ontology/all/hierarchy?language=en"
+        payload = {}
+        req = self._api_call("get", url_addition, payload)
+
+        extractor = DataExtractor("hierarchy_extractor")
+        output = req.json()
+
+        # move information on each concept one level up and ignore keys, as
+        # these are the same as the 'id' for each entry in output['concepts'].
+        hierarchy_output = output['concepts'].values()
+        data = extractor.extract_data(hierarchy_output)
+        df = pd.DataFrame(data)
+
+        top_concepts = output['topConcepts']
+        df['isTopConcept'] = False
+        df.loc[df['id'].isin(top_concepts), 'isTopConcept'] = True
+
+        return df
 
     def _api_call(self,
                   action: str,
