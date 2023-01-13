@@ -1,0 +1,13 @@
+{
+  "cols_to_data": [],
+  "extractor": {
+    "values-response": {
+      "distinct-value": {
+        "explode_values": [
+          "frequency",
+          "_value"
+        ]
+      }
+    }
+  }
+}

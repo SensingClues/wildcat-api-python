@@ -22,9 +22,11 @@
 # - install the wildcat-api-python package in a virtual environment (`pip install -e .` from the main directory of the repository).
 # - install the requirements in requirements.txt (if not already installed automatically in the previous step).
 # - create a file '.env' in the root of the wildcat-api-python-repository, containing your Cluey credentials. These will be read in this notebook to log in. The file should look like this:
-# <br>`# Cluey credentials`
-# <br>`USERNAME=your_username`
-# <br>`PASSWORD=your_password`
+# ```
+# # Cluey credentials
+# USERNAME=your_username
+# PASSWORD=your_password
+# ```
 
 # ## Configuration
 
@@ -69,6 +71,7 @@ info.head()
 
 # for other functionality, you can specify a group to extract data from
 groups = "focus-project-7136973"
+
 
 # ### Get observations
 #
@@ -161,5 +164,15 @@ helpers.get_label_for_id(hierarchy, oid)
 
 label = 'Kite'
 helpers.get_children_for_label(hierarchy, label)
+
+
+# ### Get count of concepts
+
+date_from = '2022-01-01'
+date_until = '2023-01-01'
+concept_counts = api_call.get_concept_counts(groups, date_from=date_from, date_until=date_until)
+
+concept_counts['frequency'].hist(bins=20, rwidth=0.9)
+plt.title('Usage frequency of concepts');
 
 

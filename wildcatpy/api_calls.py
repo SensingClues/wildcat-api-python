@@ -294,6 +294,27 @@ class WildcatApi(object):
 
         return df
 
+    def get_concept_counts(self,
+                           groups: Union[str, list], **kwargs):
+
+        url_addition = "ontology/all/counts"
+        payload = make_query(
+            groups=groups,
+            data_type=["observation"],
+            **kwargs,
+        )
+
+        # 'options'-key in payload not accepted by ontology/all/counts.
+        payload.pop('options')
+        req = self._api_call("post", url_addition, payload)
+
+        extractor = DataExtractor("concept_count_extractor")
+        output = req.json()
+        data = extractor.extract_data(output)
+        df = pd.DataFrame(data)
+
+        return df
+
     def _api_call(self,
                   action: str,
                   url_addition: str,
@@ -337,8 +358,7 @@ class WildcatApi(object):
         elif req.status_code == 404:
             raise TypeError(f"Unknown url {url}")
         elif req.status_code == 405:
-            raise TypeError(f"Request type for url {url} must be one of "
-                            f"{ALLOWED_REQUEST_TYPES}")
+            raise TypeError(f"Request type {action} not allowed for url {url}.")
         else:
             raise TypeError(f"Unknown error {str(req.status_code)}, "
                             f"request returned {req.json()}")
