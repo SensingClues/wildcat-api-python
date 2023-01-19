@@ -22,21 +22,23 @@
 # - install the wildcat-api-python package in a virtual environment (`pip install -e .` from the main directory of the repository).
 # - install the requirements in requirements.txt (if not already installed automatically in the previous step).
 # - create a file '.env' in the root of the wildcat-api-python-repository, containing your Cluey credentials. These will be read in this notebook to log in. The file should look like this:
-# <br>`# Cluey credentials`
-# <br>`USERNAME=your_username`
-# <br>`PASSWORD=your_password`
+# ```
+# # Cluey credentials
+# USERNAME=your_username
+# PASSWORD=your_password
+# ```
 
 # ## Configuration
 
 from wildcatpy.api_calls import WildcatApi
 from wildcatpy.src import helper_functions as helpers
 from dotenv import load_dotenv
+import matplotlib.pyplot as plt
 import json
 import os
 import pandas as pd
 
-import pdb
-
+plt.style.use('ggplot')
 
 load_dotenv()
 
@@ -128,7 +130,9 @@ poly_map
 
 # ### Get all available concepts and their hierarchy
 #
-# You can 
+# As shown later in this notebook, you can use this information to subsequently query:
+# - the details for a specific concept
+# - check the occurrence of each concept in the group(s) of observations you have access to.
 
 hierarchy = api_call.get_hierarchy()
 
@@ -136,7 +140,7 @@ hierarchy.info()
 
 # ### Get details for specific concepts in the hierarchy
 #
-# You can get information on children or the parents of a concept in the hierarchy by filtering on its label or id. Use the helper functions to do so. For example, you could do the following for the concept of a "Kite" ("https://sensingclues.poolparty.biz/SCCSSOntology/222"):
+# You can get information on children or the parents of a concept in the hierarchy by filtering on its label or id. Use the available helper functions to do so. For example, you could do the following for the concept of a "Kite" (oid = "https://sensingclues.poolparty.biz/SCCSSOntology/222"):
 #
 # ```
 # oid = "https://sensingclues.poolparty.biz/SCCSSOntology/222"
@@ -145,7 +149,7 @@ hierarchy.info()
 # helpers.get_label_for_id(hierarchy, oid)
 # ```
 #
-# or, if filtering on a label:
+# or, if filtering on the label itself:
 #
 # ```
 # label = 'Kite'
@@ -154,12 +158,54 @@ hierarchy.info()
 # helpers.get_id_for_label(hierarchy, label)
 # ```
 #
-# Alternatively, you can also filter the hierarchy-dataframe yourself of course.
+# N.B. Alternatively, you could directly filter the `hierarchy`-dataframe yourself of course.
+
+# #### Tell me, what animal belongs to this concept id?
 
 oid = "https://sensingclues.poolparty.biz/SCCSSOntology/222"
 helpers.get_label_for_id(hierarchy, oid)
 
+# #### Does this Kite have any children?
+
 label = 'Kite'
-helpers.get_children_for_label(hierarchy, label)
+children_label = helpers.get_children_for_label(hierarchy, label)
+children_label
+
+
+# #### What are the details for these children?
+
+hierarchy.loc[hierarchy['id'].isin(children_label)]
+
+# ### Count concepts related to observations
+#
+# Get the number of observations per concept in the ontology (hierarchy), e.g. the number of observations listed as a "Kite" ("https://sensingclues.poolparty.biz/SCCSSOntology/222").
+#
+# You can filter on for instance:
+# - `date_from` and `date_until`. 
+# - A list of child concepts, e.g. by extracting children for the label "Animal sighting" from hierarchy (see example below).
+# - Note that specifying a range of coordinates (via `coord`) currently does **not** work as a filter.
+
+date_from = '2022-01-01'
+date_until = '2023-01-01'
+children_label = helpers.get_children_for_label(hierarchy, 'Animal sighting')
+concept_counts = api_call.get_concept_counts(groups, 
+                                             date_from=date_from, date_until=date_until,
+                                             concepts=children_label)
+concept_counts
+
+# #### Example: visualize concept counts
+#
+# To make the visualization intelligible, add information on labels from the `hierarchy`-dataframe.
+
+min_freq = 5
+concept_freq = concept_counts.merge(hierarchy, left_on='_value', right_on='id', how='left')
+concept_freq['label'] = concept_freq['label'].fillna(concept_freq['_value'])
+concept_freq = concept_freq.set_index('label')['frequency'].sort_values(ascending=True)
+concept_freq.loc[concept_freq >= min_freq].plot(kind='barh');
+plt.title(f"Number of observations per concept in group(s)\n'{groups}'\n"
+          f"[{date_from} to {date_until} and minimum frequency {min_freq}]", 
+          fontsize=12);
+plt.xlabel('Number of observations per concept label');
+plt.ylabel('Label of concept');
 
 

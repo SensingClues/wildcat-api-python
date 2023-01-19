@@ -8,8 +8,7 @@ import numpy as np
 import pandas as pd
 import requests
 from typing import Union
-
-import pdb
+import warnings
 
 from wildcatpy.src import (
     DataExtractor,
@@ -225,18 +224,21 @@ class WildcatApi(object):
                                 project_name: str = None,
                                 project_id: int = None,
                                 layer_id: int = None,
-                                **kwargs) -> geopandas.GeoDataFrame:
+                                exclude_pids: list = None
+                                ) -> geopandas.GeoDataFrame:
         """Extract details for a specific layer
 
         :param project_name: Name of project to extract layer features for.
-        If not specified, project_id and layer_id should be. Default is None.
+            If not specified, project_id and layer_id should be. Default is None.
         :param project_id: id of project to extract. Default is None.
         :param layer_id: id of layer to extract. Default is None.
+        :param exclude_pids: List of pids to exclude, in addition to
+            ['track', 'default'], which are always excluded. Default is None.
 
         :returns: geopandas.DataFrame with features of the requested layer.
 
         """
-        all_layers = self.get_all_layers(**kwargs)
+        all_layers = self.get_all_layers(exclude_pids=exclude_pids)
 
         if project_name:
             project_layer = all_layers.loc[all_layers['layerName'] ==
@@ -294,6 +296,44 @@ class WildcatApi(object):
 
         return df
 
+    def get_concept_counts(self,
+                           groups: Union[str, list], **kwargs) -> pd.DataFrame:
+        """Get counts per ontology concept in observation data
+
+        Extra (filter) arguments can be passed to this method via **kwargs.
+        For an overview of the extra arguments allowed, see
+        the description of make_query() in helper_functions.py.
+        Note that coordinates can currently not be passed.
+
+        :param groups: Name(s) of groups to query from, passed as a string
+            or as a list of strings, e.g. "focus-project-7136973".
+        :returns: Dataframe with frequency per concept in filtered observations.
+        """
+
+        url_addition = "ontology/all/counts"
+
+        if 'coord' in kwargs.keys():
+            warnings.warn(f"Coordinates cannot be used yet in queries of"
+                          f" '{url_addition}' and will be ignored.")
+            kwargs.pop('coord')
+
+        payload = make_query(
+            groups=groups,
+            data_type=["observation"],
+            **kwargs,
+        )
+
+        # 'options'-key in payload is not accepted by /ontology/all/counts.
+        payload.pop('options')
+        req = self._api_call("post", url_addition, payload)
+
+        extractor = DataExtractor("concept_count_extractor")
+        output = req.json()
+        data = extractor.extract_data(output)
+        df = pd.DataFrame(data)
+
+        return df
+
     def _api_call(self,
                   action: str,
                   url_addition: str,
@@ -337,8 +377,7 @@ class WildcatApi(object):
         elif req.status_code == 404:
             raise TypeError(f"Unknown url {url}")
         elif req.status_code == 405:
-            raise TypeError(f"Request type for url {url} must be one of "
-                            f"{ALLOWED_REQUEST_TYPES}")
+            raise TypeError(f"Request type {action} not allowed for url {url}.")
         else:
             raise TypeError(f"Unknown error {str(req.status_code)}, "
                             f"request returned {req.json()}")

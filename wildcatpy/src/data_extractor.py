@@ -8,8 +8,6 @@ from wildcatpy.src import (
     recursive_get_from_dict,
 )
 
-import pdb
-
 data_path = pkg_resources.resource_filename('wildcatpy', 'extractors/')
 
 DEFAULT_EXTRACTION_TYPES = [

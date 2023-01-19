@@ -117,7 +117,7 @@ def make_query(data_type: Union[str, list] = None,
         TODO: Already used in add_geojson_to_track, but functionality not clear.
          - Check how the input should look like.
          - Check if query_text is additional or overwrites other kwargs.
-    :param coord: Dictionary with coordinates, e.g.
+    :param coord: Dictionary with coordinates specifying bounding box, e.g.
         {"north": 90, "south": -40, "west": 10, "east": 90}. Default is None.
     :param date_from: Start date to filter data on. Required format is
         'YYYY-mm-dd'. Default is None.
@@ -269,10 +269,10 @@ def check_coordinates(coord: dict) -> dict:
         n_dec = str(v)[::-1].find('.')
         if n_dec > COORD_PRECISION_LIMIT:
             warn_msg = (
-                f'The precision of coordinates used in query is limited'
-                f' to {COORD_PRECISION_LIMIT} decimals, while you specified'
-                f' {n_dec} for "{c}" ({v}). Note that digits beyond '
-                f'{COORD_PRECISION_LIMIT} will be ignored.'
+                f'The precision of coordinates used when querying Focus is '
+                f'limited to {COORD_PRECISION_LIMIT} decimals, but you '
+                f'specified {n_dec} for "{c}" ({v}). Note that digits beyond '
+                f'{COORD_PRECISION_LIMIT} will be ignored in the query.'
             )
             warnings.warn(warn_msg)
 
@@ -298,8 +298,10 @@ def recursive_get_from_dict(nested_dict: dict, keys: list) -> Any:
     head, *tail = keys
     if tail:
         return recursive_get_from_dict(nested_dict[head], tail)
-    else:
+    elif head in nested_dict.keys():
         return nested_dict[head]
+    else:
+        return {}
 
 
 def check_nested_dict(x: dict) -> bool:
