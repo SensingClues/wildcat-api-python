@@ -8,6 +8,7 @@
       "explode_values": [
         "id",
         "name",
+        "description",
         "geometryType"
       ]
     }
