@@ -109,7 +109,7 @@ output_pid = [{**{"pid": key}, **output[key_of_interest][key]}
 
 
 extr = DataExtractor("all_layers")
-extr_output = extr.extr(output_pid)
+extr_output = extr.extract_data(output_pid)
 
 # create a dataframe from the output of the DataExtractor
 col_trans = {
@@ -155,7 +155,7 @@ class TestNewAPI(WildcatApi):
                         for key in output["models"].keys()]
 
         extractor = DataExtractor("all_layers")
-        extracted_output = extractor.extr(layer_output)
+        extracted_output = extractor.extract_data(layer_output)
         df = pd.DataFrame(extracted_output) \
                .rename(columns=cols_to_rename)
 
