@@ -83,6 +83,7 @@ observations = api_call.observation_extractor(groups=groups, operator=["intersec
 
 observations.info()
 
+observations['agentName'] = '#####'
 observations.head()
 
 # ### Get track metadata
@@ -93,6 +94,7 @@ observations.head()
 
 tracks = api_call.track_extractor(groups=groups, time_until="23:59:54-00:00")
 
+tracks['agentName'] = '#####'
 tracks.head()
 
 # ### Add geosjon to track
@@ -103,6 +105,7 @@ tracks.head()
 
 tracks_geo = api_call.add_geojson_to_track(tracks)
 
+tracks_geo['agentName'] = '#####'
 tracks_geo.head()
 
 # ### Get all available layers (projects)
@@ -117,7 +120,9 @@ df = api_call.layer_feature_extractor(project_name='test_polygon')
 
 # #### [optional] Plot available geometries (requires Folium)
 
-# !pip install folium
+# +
+# # !pip install folium
+# -
 
 import folium
 
@@ -187,7 +192,8 @@ hierarchy.loc[hierarchy['id'].isin(children_label)]
 
 date_from = '2022-01-01'
 date_until = '2023-01-01'
-children_label = helpers.get_children_for_label(hierarchy, 'Animal sighting')
+label = 'Animal sighting'
+children_label = helpers.get_children_for_label(hierarchy, label)
 concept_counts = api_call.get_concept_counts(groups, 
                                              date_from=date_from, date_until=date_until,
                                              concepts=children_label)
@@ -195,14 +201,14 @@ concept_counts
 
 # #### Example: visualize concept counts
 #
-# To make the visualization intelligible, add information on labels from the `hierarchy`-dataframe.
+# To make the visualization intelligible, you can add information on labels from the `hierarchy`-dataframe.
 
 min_freq = 5
 concept_freq = concept_counts.merge(hierarchy, left_on='_value', right_on='id', how='left')
 concept_freq['label'] = concept_freq['label'].fillna(concept_freq['_value'])
 concept_freq = concept_freq.set_index('label')['frequency'].sort_values(ascending=True)
 concept_freq.loc[concept_freq >= min_freq].plot(kind='barh');
-plt.title(f"Number of observations per concept in group(s)\n'{groups}'\n"
+plt.title(f"Number of observations per concept in group(s)\n'{groups}' for label '{label}'\n"
           f"[{date_from} to {date_until} and minimum frequency {min_freq}]", 
           fontsize=12);
 plt.xlabel('Number of observations per concept label');

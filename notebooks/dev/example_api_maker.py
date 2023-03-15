@@ -12,7 +12,7 @@
 #     name: python3
 # ---
 
-# # Example notebook: how to develop a new method for Wildcat API
+# # Demo of developing a new method for Wildcat API
 #
 # This notebook shows an example of how to create a method for the Wildcat API: `get_all_layers`, a method which extracts an overview of available project layers from Focus. When running the example, you only see layers to which you have access.
 #
@@ -132,6 +132,7 @@ df.head()
 
 # +
 DEFAULT_EXCLUDE_PIDS = ['track', 'default']
+
 
 class TestNewAPI(WildcatApi):
     def get_all_layers(self, exclude_pids: list = None):

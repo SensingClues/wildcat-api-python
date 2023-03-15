@@ -97,12 +97,11 @@ def make_query(data_type: Union[str, list] = None,
     allows for all possible filters via its kwargs.
 
     TODO:
-     - query_text
-     - page_nbr
-     - page_length
-     - operation
-     - data_type (which options?)
-
+    - query_text
+    - page_nbr
+    - page_length
+    - operation
+    - data_type (which options?)
 
     :param data_type: Type of data to extract. Level 0 of hierarchy in Focus.
         Must be one of ['observation', 'track']. Default is None, in which
@@ -115,8 +114,8 @@ def make_query(data_type: Union[str, list] = None,
         Party URL, e.g. "https://sensingclues.poolparty.biz/SCCSSOntology/186".
     :param query_text: Specify query text manually, e.g."entityId: 'exampleC'".
         TODO: Already used in add_geojson_to_track, but functionality not clear.
-         - Check how the input should look like.
-         - Check if query_text is additional or overwrites other kwargs.
+        - Check how the input should look like.
+        - Check if query_text is additional or overwrites other kwargs.
     :param coord: Dictionary with coordinates specifying bounding box, e.g.
         {"north": 90, "south": -40, "west": 10, "east": 90}. Default is None.
     :param date_from: Start date to filter data on. Required format is

@@ -3,21 +3,28 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to wildcatpy's documentation!
-=====================================
+Welcome to WildCatApi's documentation!
+======================================
 
-Contents:
+.. include:: source/introduction.rst
 
 .. toctree::
+   :maxdepth: 2
 
-    source/dev
-    source/user
+   source/installation.rst
+   source/usage.rst
+   source/tutorial.rst
 
+Source code documentation
+-------------------------
 
+.. toctree::
+   :maxdepth: 2
 
+   source/code
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
