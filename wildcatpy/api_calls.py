@@ -37,7 +37,7 @@ class WildcatApi(object):
         """Function to log in to Focus
 
         Login is done automatically when initiating the WildcatApi-class.
-        
+
         :param username: Username for focus
         :param password: Password for focus
 
@@ -87,7 +87,7 @@ class WildcatApi(object):
                               **kwargs) -> pd.DataFrame:
         """Method to acquire observations data from Focus
 
-        Extra (filter) arguments can be passed to this method via **kwargs.
+        Extra (filter) arguments can be passed to this method via kwargs.
         For an overview of the extra arguments allowed, see
         the description of make_query() in helper_functions.py.
 
@@ -126,7 +126,7 @@ class WildcatApi(object):
                         groups: Union[str, list], **kwargs) -> pd.DataFrame:
         """Method to acquire tracks data from Focus
 
-        Extra (filter) arguments can be passed to this method via **kwargs.
+        Extra (filter) arguments can be passed to this method via kwargs.
         For an overview of the extra arguments allowed, see
         the description of make_query() in helper_functions.py.
 
@@ -175,7 +175,7 @@ class WildcatApi(object):
             req = self._api_call("post", url_addition, payload)
             df_entity = geopandas.read_file(io.BytesIO(req.content))
             df = pd.concat([df, df_entity], ignore_index=True, sort=False)
-            
+
         tracks_meta = tracks_meta.merge(df,
                                         how="left",
                                         left_on="entityId",
@@ -187,8 +187,8 @@ class WildcatApi(object):
         """Get layers to which the user has access
 
         :param exclude_pids: List of pids to exclude, in addition to
-        ['track', 'default'], which are always excluded. Default is None,
-        in which case exclude_pids is set to ['track', 'default'].
+            ['track', 'default'], which are always excluded. Default is None,
+            in which case exclude_pids is set to ['track', 'default'].
         :returns: Dataframe with project id's and layer names.
         """
 
@@ -300,7 +300,7 @@ class WildcatApi(object):
                            groups: Union[str, list], **kwargs) -> pd.DataFrame:
         """Get counts per ontology concept in observation data
 
-        Extra (filter) arguments can be passed to this method via **kwargs.
+        Extra (filter) arguments can be passed to this method via kwargs.
         For an overview of the extra arguments allowed, see
         the description of make_query() in helper_functions.py.
         Note that coordinates can currently not be passed.
