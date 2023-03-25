@@ -1,4 +1,4 @@
-# WildCat API to extract data from SensingClues' Cluey-app 
+# WildCAT API to extract data from SensingClues' Cluey-app 
 
 ## Introduction
 
