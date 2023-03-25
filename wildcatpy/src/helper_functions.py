@@ -1,4 +1,4 @@
-"""Helper functions for WildcatApi"""
+"""Helper functions for WildCATApi"""
 
 import copy
 from datetime import datetime

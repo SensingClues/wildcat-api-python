@@ -14,7 +14,7 @@
 
 # # Demo of functionality available in wildcat-api-python
 #
-# This demo shows the available functionality using default settings for parameters. For more detail on what you can configure as a user, see the documentation and description of individual methods in the WildcatApi-class.
+# This demo shows the available functionality using default settings for parameters. For more detail on what you can configure as a user, see the documentation and description of individual methods in the WildCATApi-class.
 #
 # ### Before you start
 #
@@ -30,7 +30,7 @@
 
 # ## Configuration
 
-from wildcatpy.api_calls import WildcatApi
+from wildcatpy.api_calls import WildCATApi
 from wildcatpy.src import helper_functions as helpers
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
@@ -51,7 +51,7 @@ password = os.getenv('PASSWORD') # You can also type your username here manually
 
 # ## Demo-time, here we go!
 
-api_call = WildcatApi(username, password)
+api_call = WildCATApi(username, password)
 
 # ### Login 
 

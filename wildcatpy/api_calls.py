@@ -1,4 +1,4 @@
-"""Main WildcatApi-class"""
+"""Main WildCATApi-class"""
 
 import copy
 import geopandas
@@ -21,7 +21,7 @@ ALLOWED_REQUEST_TYPES = ['post', 'get']
 DEFAULT_EXCLUDE_PIDS = ['track', 'default']
 
 
-class WildcatApi(object):
+class WildCATApi(object):
     """Class to extract various types of SensingClues-data"""
 
     def __init__(self, user_name: str, password: str):
@@ -36,7 +36,7 @@ class WildcatApi(object):
     def login(self, username: str, password: str) -> requests.models.Response:
         """Function to log in to Focus
 
-        Login is done automatically when initiating the WildcatApi-class.
+        Login is done automatically when initiating the WildCATApi-class.
 
         :param username: Username for focus
         :param password: Password for focus
@@ -340,7 +340,7 @@ class WildcatApi(object):
                   payload: dict = None) -> requests.models.Response:
         """Main method to make requests from Focus
 
-        This method can be called by all methods available in WildcatApi
+        This method can be called by all methods available in WildCATApi
 
         :param action: Type of request, currently 'post' or 'get'.
         :param url_addition: Suffix to base url. Depends on the data requested.

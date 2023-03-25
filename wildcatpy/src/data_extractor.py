@@ -23,7 +23,7 @@ class DataExtractor(object):
     /wildcatpy/extractors/.
 
     N.B. If you want to extract different elements, e.g. because you are
-    developing a new method for the WildcatApi-class, you can add your own
+    developing a new method for the WildCATApi-class, you can add your own
     json-files, without modifying this DataExtractor-class.
 
     N.B. This class currently only has 1 method, so it could be a function.

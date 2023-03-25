@@ -21,7 +21,7 @@
 # ## Configuration
 
 # +
-from wildcatpy.api_calls import WildcatApi
+from wildcatpy.api_calls import WildCATApi
 from wildcatpy.src import DataExtractor
 
 import os
@@ -47,7 +47,7 @@ username = os.getenv("USERNAME") # you can also type your username here manually
 password = os.getenv('PASSWORD') # You can also type your password here manually
 
 # initialize API
-api_call = WildcatApi(username, password)
+api_call = WildCATApi(username, password)
 
 # ## 1. Create get_all_layers
 
@@ -125,7 +125,7 @@ df.head()
 # ### Create and test method
 #
 # - Combine the steps above into the new method
-# - Test the new function by extend the existing WildcatApi-class.
+# - Test the new function by extend the existing WildCATApi-class.
 # - If the function works here, you can implement it in api_calls.py.
 #
 # Note: the `get_all_layers`-method is relatively simple, but we aim to illustrate the concept here.
@@ -134,7 +134,7 @@ df.head()
 DEFAULT_EXCLUDE_PIDS = ['track', 'default']
 
 
-class TestNewAPI(WildcatApi):
+class TestNewAPI(WildCATApi):
     def get_all_layers(self, exclude_pids: list = None):
         if not exclude_pids:
             exclude_pids = DEFAULT_EXCLUDE_PIDS

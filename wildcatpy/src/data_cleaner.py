@@ -1,4 +1,4 @@
-"""Helper functions to clean data in WildcatApi"""
+"""Helper functions to clean data in WildCATApi"""
 
 import pkg_resources
 from typing import List
