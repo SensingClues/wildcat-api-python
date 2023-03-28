@@ -47,6 +47,12 @@ pip install jupytext
 Finally, you should create an account in the Cluey-app to obtain credentials which you need
 to use this library.
 
+Note: if you are developing new functionality, please also do:
+```python
+pip install -r requirements_dev.txt
+pre-commit install
+```
+
 ## Usage
 
 The best way to get acquainted with the functionality availability in wildcat-api-python is 
