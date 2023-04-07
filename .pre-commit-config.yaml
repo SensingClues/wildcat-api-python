@@ -1,0 +1,18 @@
+exclude: |
+    (?x)(
+        ^docs/|
+        ^setup.py|
+        ^notebooks/|
+        ^__init__.py
+    )
+repos:
+
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.4.4
+    hooks:
+    - id: autopep8
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v1.2.3
+    hooks:
+    - id: flake8
+

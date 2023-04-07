@@ -1,0 +1,15 @@
+pip
+bumpversion
+flake8
+jupyterlab
+jupytext
+mypy
+pre-commit
+pydantic
+pytest
+pytest-runner
+pytest-cov
+pycodestyle
+autopep8
+python-dotenv
+black
