@@ -103,10 +103,13 @@ tracks.head()
 #
 # TODO: provide detailed instructions.
 
-tracks_geo = api_call.add_geojson_to_track(tracks)
+track_entities = tracks['entityId'].unique().tolist()
+tracks_geo = api_call.add_geojson_to_track(track_entities)
 
-tracks_geo['agentName'] = '#####'
-tracks_geo.head()
+tracks_merged = tracks.merge(tracks_geo, how="left", on="entityId")
+
+tracks_merged['agentName'] = '#####'
+tracks_merged.head()
 
 # ### Get all available layers (projects)
 

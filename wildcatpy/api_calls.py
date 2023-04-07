@@ -1,13 +1,12 @@
 """Main WildCATApi-class"""
 
-import copy
 import geopandas
 import io
 import math
 import numpy as np
 import pandas as pd
 import requests
-from typing import Union
+from typing import Union, List
 import warnings
 
 from wildcatpy.src import (
@@ -97,9 +96,9 @@ class WildCATApi(object):
             concepts-kwarg), this argument allows you to include or exclude
             observations related to concepts lower in the hierarchy than the
             concept you filtered on. For instance, if you filter on 'animal'
-            (concepts = "https://sensingclues.poolparty.biz/SCCSSOntology/186"),
-            you will also obtain entries for e.g. 'hippo' (which is an 'animal')
-            if include_subconcepts is True. Default is True.
+            (concepts = "https://sensingclues.poolparty.biz/SCCSSOntology/186")
+            , you will also obtain entries for e.g. 'hippo' (which is an
+            'animal') if include_subconcepts is True. Default is True.
 
         :returns: Dataframe with available observations, in line with the
             query parameters specified in kwargs (if any).
@@ -123,7 +122,8 @@ class WildCATApi(object):
         return df
 
     def track_extractor(self,
-                        groups: Union[str, list], **kwargs) -> pd.DataFrame:
+                        groups: Union[str, list],
+                        precision: int = 3, **kwargs) -> pd.DataFrame:
         """Method to acquire tracks data from Focus
 
         Extra (filter) arguments can be passed to this method via kwargs.
@@ -132,55 +132,58 @@ class WildCATApi(object):
 
         :param groups: Name(s) of groups to query from, passed as a string
             or as a list of strings, e.g. "focus-project-7136973".
+        :param precision: Number of decimals used to round the length and
+            duration (hours) of the track. Default is 3.
 
         :returns: Dataframe with available tracks, in line with the
             query parameters specified in kwargs (if any).
 
         """
-        return self._iterate_api(groups,
-                                 data_type=["track"],
-                                 extractor_name="track_extractor",
-                                 **kwargs,
-                                 )
+        tracks = self._iterate_api(
+            groups,
+            data_type=["track"],
+            extractor_name="track_extractor",
+            **kwargs,
+        )
+
+        tracks["startWhen"] = pd.to_datetime(tracks["startWhen"],
+                                             infer_datetime_format=True)
+        tracks["endWhen"] = pd.to_datetime(tracks["endWhen"],
+                                           infer_datetime_format=True)
+
+        tracks["length"] = round(tracks["length"], precision)
+        tracks["patrolDuration_hours"] = (
+            tracks["endWhen"] - tracks["startWhen"]) / pd.Timedelta(hours=1)
+        tracks["patrolDuration_hours"] = round(tracks["patrolDuration_hours"],
+                                               precision)
+
+        return tracks
 
     def add_geojson_to_track(self,
-                             tracks: pd.DataFrame,
-                             precision: int = 3) -> pd.DataFrame:
-        """Add geojson to track metadata
+                             track_entities: List[str],
+                             ) -> pd.DataFrame:
+        """Get geojson data for tracks
 
-        For each unique route, geojson data is added (if available in Focus).
+        For each unique track, exrtact geojson data (if available in Focus).
 
-        :param tracks: Tracks data, as output by the track_extractor-method.
-        :param precision: Number of decimals used to round the length and
-            duration (hours) of the track. Default is 3.
-        :returns: Dataframe with the tracks, including geojson-data.
+        :param track_entities:
+            List of entityId's for tracks to get geojson for.
+        :returns: Dataframe with track geojson-data.
         """
-        tracks_meta = copy.deepcopy(tracks)
 
         url_addition = "map/all/track/0/features/"
 
-        tracks_meta["startWhen"] = pd.to_datetime(tracks_meta["startWhen"],
-                                                  infer_datetime_format=True)
-        tracks_meta["endWhen"] = pd.to_datetime(tracks_meta["endWhen"],
-                                                infer_datetime_format=True)
-        tracks_meta["patrolDuration"] = round(
-            (tracks_meta["endWhen"] - tracks_meta["startWhen"])
-            / pd.Timedelta(hours=1), precision)
-        tracks_meta["length"] = round(tracks_meta["length"], precision)
-
         df = pd.DataFrame()
-        unique_routes = tracks_meta["entityId"].unique()
+        unique_routes = np.unique(track_entities)
         for i, entity in enumerate(unique_routes):
             payload = make_query(query_text=f"entityId:'{entity}'")
             req = self._api_call("post", url_addition, payload)
             df_entity = geopandas.read_file(io.BytesIO(req.content))
             df = pd.concat([df, df_entity], ignore_index=True, sort=False)
 
-        tracks_meta = tracks_meta.merge(df,
-                                        how="left",
-                                        left_on="entityId",
-                                        right_on="EntityId")
-        return tracks_meta
+        df = df.rename(columns={'EntityId': 'entityId'})
+
+        return df
 
     def get_all_layers(self,
                        exclude_pids: list = None) -> pd.DataFrame:
@@ -229,7 +232,7 @@ class WildCATApi(object):
         """Extract details for a specific layer
 
         :param project_name: Name of project to extract layer features for.
-            If not specified, project_id and layer_id should be. Default is None.
+            If not specified, project_id and layer_id should be. Default None.
         :param project_id: id of project to extract. Default is None.
         :param layer_id: id of layer to extract. Default is None.
         :param exclude_pids: List of pids to exclude, in addition to
@@ -250,8 +253,8 @@ class WildCATApi(object):
                 raise ValueError(f'No layer available for project_name '
                                  f'{project_name}')
         else:
-            msg = (f'If not providing a project_name, '
-                   f'please specify the project_id and layer_id.')
+            msg = ('If not providing a project_name, '
+                   'please specify the project_id and layer_id.')
             assert (isinstance(project_id, int) and isinstance(layer_id,
                                                                int)), msg
 
@@ -307,7 +310,8 @@ class WildCATApi(object):
 
         :param groups: Name(s) of groups to query from, passed as a string
             or as a list of strings, e.g. "focus-project-7136973".
-        :returns: Dataframe with frequency per concept in filtered observations.
+        :returns:
+            Dataframe with frequency per concept in filtered observations.
         """
 
         url_addition = "ontology/all/counts"
@@ -377,7 +381,8 @@ class WildCATApi(object):
         elif req.status_code == 404:
             raise TypeError(f"Unknown url {url}")
         elif req.status_code == 405:
-            raise TypeError(f"Request type {action} not allowed for url {url}.")
+            raise TypeError(
+                f"Request type {action} not allowed for url {url}.")
         else:
             raise TypeError(f"Unknown error {str(req.status_code)}, "
                             f"request returned {req.json()}")
