@@ -17,7 +17,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     data_files=glob.glob('wildcatpy/extractors/**'),
     install_requires=required,
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     include_package_data=True,
