@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name="wildcatpy",
-    version="0.1.0",
+    version="0.2.0",
     author="sensing_clues",
     author_email="sensingclues@typemail.com",
     description="wildcatpy",
@@ -17,6 +17,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     data_files=glob.glob('wildcatpy/extractors/**'),
     install_requires=required,
+    python_requires='>=3.7',
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     include_package_data=True,
