@@ -30,30 +30,34 @@
 
 # ## Configuration
 
+import os
+
+import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+
+from wildcatpy import wclogging
 from wildcatpy.api_calls import WildCATApi
 from wildcatpy.src import helper_functions as helpers
-from dotenv import load_dotenv
-import matplotlib.pyplot as plt
-import json
-import os
-import pandas as pd
 
-plt.style.use('ggplot')
+logger = wclogging.get_wc_logger()
+wclogging.set_wc_log_level("DEBUG")
+
+plt.style.use("ggplot")
 
 load_dotenv()
 
 # %load_ext autoreload
 # %autoreload 2
 
-username = os.getenv("USERNAME") # you can also type your password here manually
-password = os.getenv('PASSWORD') # You can also type your username here manually
+username = os.getenv("USERNAME")  # you can also type your password here manually
+password = os.getenv("PASSWORD")  # You can also type your username here manually
 
 
 # ## Demo-time, here we go!
 
 api_call = WildCATApi(username, password)
 
-# ### Login 
+# ### Login
 
 # expected output if successful: '<Response [200]>'
 api_call.login(username, password)
@@ -70,20 +74,25 @@ info = api_call.get_groups()
 info.head()
 
 # for other functionality, you can specify a group to extract data from
-groups = "focus-project-7136973"
+groups = "focus-project-1234"
 
 # ### Get observations
 #
-# Note that you can control the scope (e.g. coordinates) of these observations in more detail than done here.
+# You can control the scope (e.g. coordinates) of these observations in more detail than done in this example.
+# For reference: ~500 observations typically take ~1 minute to read.
+#
+# **NOTE:**
+#  Each observation may have multiple concepts (tags) associated with it,
+#  in which case the number of rows in the observations-dataframe is larger than
+#  the number of records of data type 'observations' mentioned by the logger.
 #
 # TODO: provide detailed instructions.
 
-
-observations = api_call.observation_extractor(groups=groups, operator=["intersects"])
+observations = api_call.get_observations(groups=groups, operator=["intersects"])
 
 observations.info()
 
-observations['agentName'] = '#####'
+observations["agentName"] = "#####"
 observations.head()
 
 # ### Get track metadata
@@ -92,23 +101,28 @@ observations.head()
 #
 # TODO: provide detailed instructions.
 
-tracks = api_call.track_extractor(groups=groups, time_until="23:59:54-00:00")
+tracks = api_call.get_tracks(groups=groups, time_until="23:59:54-00:00")
 
-tracks['agentName'] = '#####'
+tracks["agentName"] = "#####"
 tracks.head()
 
-# ### Add geosjon to track
+# ### Add geosjon-data to tracks
 #
 # Note that you can control the scope (e.g. coordinates) of these observations in more detail than done here.
 #
 # TODO: provide detailed instructions.
 
-track_entities = tracks['entityId'].unique().tolist()
-tracks_geo = api_call.add_geojson_to_track(track_entities)
+if tracks.shape[0] > 0:
+    track_entities = tracks["entityId"].unique().tolist()
+    tracks_geo = api_call.add_geojson_to_track(track_entities)
+    tracks_merged = tracks.merge(tracks_geo, how="left", on="entityId")
+    tracks_merged["agentName"] = "#####"
+else:
+    logger.warning(
+        f"No tracks available for group {groups}, " f"cannot obtain geojson-data"
+    )
+    tracks_merged = tracks
 
-tracks_merged = tracks.merge(tracks_geo, how="left", on="entityId")
-
-tracks_merged['agentName'] = '#####'
 tracks_merged.head()
 
 # ### Get all available layers (projects)
@@ -119,7 +133,7 @@ layers
 
 # ### Get details (features) for an individual layer
 
-df = api_call.layer_feature_extractor(project_name='test_polygon')
+df = api_call.get_layer_features(layer_name="test_multipolygon")
 
 # #### [optional] Plot available geometries (requires Folium)
 
@@ -129,8 +143,8 @@ df = api_call.layer_feature_extractor(project_name='test_polygon')
 
 import folium
 
-poly_map = folium.Map([51.9244, 4.4777], zoom_start=8, tiles='cartodbpositron')
-for _, geometry in df['geometry'].items():
+poly_map = folium.Map([51.9244, 4.4777], zoom_start=8, tiles="cartodbpositron")
+for _, geometry in df["geometry"].items():
     folium.GeoJson(geometry).add_to(poly_map)
 folium.LatLngPopup().add_to(poly_map)
 poly_map
@@ -175,46 +189,53 @@ helpers.get_label_for_id(hierarchy, oid)
 
 # #### Does this Kite have any children?
 
-label = 'Kite'
+label = "Kite"
 children_label = helpers.get_children_for_label(hierarchy, label)
 children_label
 
 
 # #### What are the details for these children?
 
-hierarchy.loc[hierarchy['id'].isin(children_label)]
+hierarchy.loc[hierarchy["id"].isin(children_label)]
 
 # ### Count concepts related to observations
 #
-# Get the number of observations per concept in the ontology (hierarchy), e.g. the number of observations listed as a "Kite" ("https://sensingclues.poolparty.biz/SCCSSOntology/222").
+# Get the number of observations per concept in the ontology (hierarchy),
+# e.g. the number of observations listed as a "Kite" ("https://sensingclues.poolparty.biz/SCCSSOntology/222").
 #
 # You can filter on for instance:
-# - `date_from` and `date_until`. 
+# - `date_from` and `date_until`.
 # - A list of child concepts, e.g. by extracting children for the label "Animal sighting" from hierarchy (see example below).
 # - Note that specifying a range of coordinates (via `coord`) currently does **not** work as a filter.
 
-date_from = '2022-01-01'
-date_until = '2023-01-01'
-label = 'Animal sighting'
+date_from = "2010-01-01"
+date_until = "2024-01-01"
+label = "Animal sighting"
 children_label = helpers.get_children_for_label(hierarchy, label)
-concept_counts = api_call.get_concept_counts(groups, 
-                                             date_from=date_from, date_until=date_until,
-                                             concepts=children_label)
-concept_counts
+concept_counts = api_call.get_concept_counts(
+    groups, date_from=date_from, date_until=date_until, concepts=children_label
+)
+concept_counts.head()
 
 # #### Example: visualize concept counts
 #
 # To make the visualization intelligible, you can add information on labels from the `hierarchy`-dataframe.
 
-min_freq = 5
-concept_freq = concept_counts.merge(hierarchy, left_on='_value', right_on='id', how='left')
-concept_freq['label'] = concept_freq['label'].fillna(concept_freq['_value'])
-concept_freq = concept_freq.set_index('label')['frequency'].sort_values(ascending=True)
-concept_freq.loc[concept_freq >= min_freq].plot(kind='barh');
-plt.title(f"Number of observations per concept in group(s)\n'{groups}' for label '{label}'\n"
-          f"[{date_from} to {date_until} and minimum frequency {min_freq}]", 
-          fontsize=12);
-plt.xlabel('Number of observations per concept label');
-plt.ylabel('Label of concept');
+min_freq = 10
+if not concept_counts.empty:
+    concept_freq = concept_counts.merge(
+        hierarchy, left_on="_value", right_on="id", how="left"
+    )
+    concept_freq["label"] = concept_freq["label"].fillna(concept_freq["_value"])
+    concept_freq = concept_freq.set_index("label")["frequency"].sort_values(
+        ascending=True
+    )
 
-
+    concept_freq.loc[concept_freq >= min_freq].plot(kind="barh")
+    plt.title(
+        f"Number of observations per concept in group(s)\n'{groups}' for label '{label}'\n"
+        f"[{date_from} to {date_until} and minimum frequency {min_freq}]",
+        fontsize=12,
+    )
+    plt.xlabel("Number of observations per concept label")
+    plt.ylabel("Label of concept")
