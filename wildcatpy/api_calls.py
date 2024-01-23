@@ -1,23 +1,24 @@
 """Main WildCATApi-class"""
 
-import geopandas
 import io
 import math
+import warnings
+from typing import List, Union
+
+import geopandas
 import numpy as np
 import pandas as pd
 import requests
-from typing import Union, List
-import warnings
 
-from wildcatpy.src import (
-    DataExtractor,
-    make_query,
-)
+from wildcatpy import wclogging
+from wildcatpy.src import DataExtractor, align_extractor, make_query
+
+logger = wclogging.get_wc_logger()
 
 FOCUS_BASE_URL = "https://focus.sensingclues.org/api/"
 
-ALLOWED_REQUEST_TYPES = ['post', 'get']
-DEFAULT_EXCLUDE_PIDS = ['track', 'default']
+ALLOWED_REQUEST_TYPES = ["post", "get"]
+DEFAULT_EXCLUDE_PIDS = ["track", "default"]
 
 
 class WildCATApi(object):
@@ -45,8 +46,8 @@ class WildCATApi(object):
 
         url_addition = "auth/login"
         payload = {
-            'username': username,
-            'password': password,
+            "username": username,
+            "password": password,
         }
         return self._api_call("post", url_addition, payload)
 
@@ -69,21 +70,22 @@ class WildCATApi(object):
             data_type=["observation", "track"],  # TODO: why these types only?
         )
         req = self._api_call("post", url_addition, payload)
-        extractor = DataExtractor("groups_extractor")
+        extractor = DataExtractor("groups")
         data = extractor.extract_data(req.json())
 
         df = pd.DataFrame(data)
-        df = df[['name', 'value', 'count']]
-        df = df.rename(columns={
-            'value': 'description',
-            'count': 'n_records',
-        })
+        df = df[["name", "value", "count"]]
+        df = df.rename(
+            columns={
+                "value": "description",
+                "count": "n_records",
+            }
+        )
         return df
 
-    def observation_extractor(self,
-                              groups: str,
-                              include_subconcepts: bool = True,
-                              **kwargs) -> pd.DataFrame:
+    def get_observations(
+        self, groups: str, include_subconcepts: bool = True, **kwargs
+    ) -> pd.DataFrame:
         """Method to acquire observations data from Focus
 
         Extra (filter) arguments can be passed to this method via kwargs.
@@ -103,27 +105,27 @@ class WildCATApi(object):
         :returns: Dataframe with available observations, in line with the
             query parameters specified in kwargs (if any).
         """
-        col_trans = {
-            "label": "conceptLabel"
-        }
+        col_trans = {"label": "conceptLabel"}
 
-        df = self._iterate_api(groups,
-                               data_type=["observation"],
-                               extractor_name="observation_extractor",
-                               **kwargs,
-                               )
+        obs = self._iterate_api(
+            groups,
+            data_type=["observation"],
+            extractor_name="observations",
+            **kwargs,
+        )
 
         concepts = kwargs.get("concepts", None)
-        if concepts is not None and df.shape[0] > 0:
+        if concepts is not None and obs.shape[0] > 0:
             if not include_subconcepts:
-                df = df.loc[df["conceptId"] == concepts]
+                logger.info(f"Filtering observations on concepts {concepts}.")
+                obs = obs.loc[obs["conceptId"] == concepts]
 
-        df = df.rename(columns=col_trans)
-        return df
+        obs = obs.rename(columns=col_trans)
+        return obs
 
-    def track_extractor(self,
-                        groups: Union[str, list],
-                        precision: int = 3, **kwargs) -> pd.DataFrame:
+    def get_tracks(
+        self, groups: Union[str, list], precision: int = 3, **kwargs
+    ) -> pd.DataFrame:
         """Method to acquire tracks data from Focus
 
         Extra (filter) arguments can be passed to this method via kwargs.
@@ -142,29 +144,35 @@ class WildCATApi(object):
         tracks = self._iterate_api(
             groups,
             data_type=["track"],
-            extractor_name="track_extractor",
+            extractor_name="tracks",
             **kwargs,
         )
 
-        tracks["startWhen"] = pd.to_datetime(tracks["startWhen"],
-                                             infer_datetime_format=True)
-        tracks["endWhen"] = pd.to_datetime(tracks["endWhen"],
-                                           infer_datetime_format=True)
+        if not tracks.empty:
+            tracks["startWhen"] = pd.to_datetime(
+                tracks["startWhen"], infer_datetime_format=True
+            )
+            tracks["endWhen"] = pd.to_datetime(
+                tracks["endWhen"], infer_datetime_format=True
+            )
 
-        tracks["length"] = round(tracks["length"], precision)
-        tracks["patrolDuration_hours"] = (
-            tracks["endWhen"] - tracks["startWhen"]) / pd.Timedelta(hours=1)
-        tracks["patrolDuration_hours"] = round(tracks["patrolDuration_hours"],
-                                               precision)
+            tracks["length"] = round(tracks["length"], precision)
+            tracks["patrolDuration_hours"] = (
+                tracks["endWhen"] - tracks["startWhen"]
+            ) / pd.Timedelta(hours=1)
+            tracks["patrolDuration_hours"] = round(
+                tracks["patrolDuration_hours"], precision
+            )
 
         return tracks
 
-    def add_geojson_to_track(self,
-                             track_entities: List[str],
-                             ) -> pd.DataFrame:
+    def add_geojson_to_track(
+        self,
+        track_entities: List[str],
+    ) -> pd.DataFrame:
         """Get geojson data for tracks
 
-        For each unique track, exrtact geojson data (if available in Focus).
+        For each unique track, extract geojson data (if available in Focus).
 
         :param track_entities:
             List of entityId's for tracks to get geojson for.
@@ -179,14 +187,18 @@ class WildCATApi(object):
             payload = make_query(query_text=f"entityId:'{entity}'")
             req = self._api_call("post", url_addition, payload)
             df_entity = geopandas.read_file(io.BytesIO(req.content))
+            if not df_entity.empty:
+                logger.debug(f"Found geojson data for track {entity}.")
+            else:
+                logger.debug(f"No geojson data found for track {entity}.")
             df = pd.concat([df, df_entity], ignore_index=True, sort=False)
 
-        df = df.rename(columns={'EntityId': 'entityId'})
+        if not df.empty:
+            df = df.rename(columns={"EntityId": "entityId"})
 
         return df
 
-    def get_all_layers(self,
-                       exclude_pids: list = None) -> pd.DataFrame:
+    def get_all_layers(self, exclude_pids: list = None) -> pd.DataFrame:
         """Get layers to which the user has access
 
         :param exclude_pids: List of pids to exclude, in addition to
@@ -201,37 +213,35 @@ class WildCATApi(object):
             exclude_pids += DEFAULT_EXCLUDE_PIDS
         exclude_pids = [str(x) for x in exclude_pids]
 
-        cols_to_rename = {
-            "id": "lid",
-            "name": "layerName"
-        }
+        cols_to_rename = {"id": "lid", "name": "layerName"}
         url_addition = "/map/all/describe"
 
         req = self._api_call("get", url_addition)
         output = req.json()
 
-        # key 'pid' is added to access layers in layer_feature_extractor.
-        layer_output = [{**{"pid": key}, **output["models"][key]}
-                        for key in output["models"].keys()]
+        # key 'pid' is added to access layers in layer_features.
+        layer_output = [
+            {**{"pid": key}, **output["models"][key]} for key in output["models"].keys()
+        ]
 
         extractor = DataExtractor("all_layers")
         extracted_output = extractor.extract_data(layer_output)
 
-        df = pd.DataFrame(extracted_output) \
-            .rename(columns=cols_to_rename)
+        df = pd.DataFrame(extracted_output).rename(columns=cols_to_rename)
 
-        df = df.loc[~df['pid'].isin(exclude_pids)]
+        df = df.loc[~df["pid"].isin(exclude_pids)]
         return df
 
-    def layer_feature_extractor(self,
-                                project_name: str = None,
-                                project_id: int = None,
-                                layer_id: int = None,
-                                exclude_pids: list = None
-                                ) -> geopandas.GeoDataFrame:
+    def get_layer_features(
+        self,
+        layer_name: str = None,
+        project_id: int = None,
+        layer_id: int = None,
+        exclude_pids: list = None,
+    ) -> geopandas.GeoDataFrame:
         """Extract details for a specific layer
 
-        :param project_name: Name of project to extract layer features for.
+        :param layer_name: Name of project to extract layer features for.
             If not specified, project_id and layer_id should be. Default None.
         :param project_id: id of project to extract. Default is None.
         :param layer_id: id of layer to extract. Default is None.
@@ -243,20 +253,20 @@ class WildCATApi(object):
         """
         all_layers = self.get_all_layers(exclude_pids=exclude_pids)
 
-        if project_name:
-            project_layer = all_layers.loc[all_layers['layerName'] ==
-                                           project_name]
+        if layer_name:
+            project_layer = all_layers.loc[all_layers["layerName"] == layer_name]
             if np.shape(project_layer)[0] > 0:
-                project_id = project_layer['pid'].astype(int).values[0]
-                layer_id = project_layer['lid'].astype(int).values[0]
+                project_id = project_layer["pid"].astype(int).values[0]
+                layer_id = project_layer["lid"].astype(int).values[0]
             else:
-                raise ValueError(f'No layer available for project_name '
-                                 f'{project_name}')
+                raise ValueError(f"No layer available for layer_name " f"{layer_name}")
         else:
-            msg = ('If not providing a project_name, '
-                   'please specify the project_id and layer_id.')
-            assert (isinstance(project_id, int) and isinstance(layer_id,
-                                                               int)), msg
+            msg = (
+                "If not providing a layer_name, "
+                "please specify the project_id and layer_id."
+            )
+            if not (isinstance(project_id, int) and isinstance(layer_id, int)):
+                raise ValueError(msg)
 
         url_addition = f"map/all/{project_id}/{layer_id}/features/"
         req = self._api_call("post", url_addition)
@@ -284,23 +294,22 @@ class WildCATApi(object):
         payload = {}
         req = self._api_call("get", url_addition, payload)
 
-        extractor = DataExtractor("hierarchy_extractor")
+        extractor = DataExtractor("hierarchy")
         output = req.json()
 
         # move information on each concept one level up and ignore keys, as
         # these are the same as the 'id' for each entry in output['concepts'].
-        hierarchy_output = output['concepts'].values()
+        hierarchy_output = output["concepts"].values()
         data = extractor.extract_data(hierarchy_output)
         df = pd.DataFrame(data)
 
-        top_concepts = output['topConcepts']
-        df['isTopConcept'] = False
-        df.loc[df['id'].isin(top_concepts), 'isTopConcept'] = True
+        top_concepts = output["topConcepts"]
+        df["isTopConcept"] = False
+        df.loc[df["id"].isin(top_concepts), "isTopConcept"] = True
 
         return df
 
-    def get_concept_counts(self,
-                           groups: Union[str, list], **kwargs) -> pd.DataFrame:
+    def get_concept_counts(self, groups: Union[str, list], **kwargs) -> pd.DataFrame:
         """Get counts per ontology concept in observation data
 
         Extra (filter) arguments can be passed to this method via kwargs.
@@ -316,10 +325,12 @@ class WildCATApi(object):
 
         url_addition = "ontology/all/counts"
 
-        if 'coord' in kwargs.keys():
-            warnings.warn(f"Coordinates cannot be used yet in queries of"
-                          f" '{url_addition}' and will be ignored.")
-            kwargs.pop('coord')
+        if "coord" in kwargs.keys():
+            warnings.warn(
+                f"Coordinates cannot be used yet in queries of"
+                f" '{url_addition}' and will be ignored."
+            )
+            kwargs.pop("coord")
 
         payload = make_query(
             groups=groups,
@@ -328,20 +339,19 @@ class WildCATApi(object):
         )
 
         # 'options'-key in payload is not accepted by /ontology/all/counts.
-        payload.pop('options')
+        payload.pop("options")
         req = self._api_call("post", url_addition, payload)
 
-        extractor = DataExtractor("concept_count_extractor")
+        extractor = DataExtractor("concept_count")
         output = req.json()
         data = extractor.extract_data(output)
         df = pd.DataFrame(data)
 
         return df
 
-    def _api_call(self,
-                  action: str,
-                  url_addition: str,
-                  payload: dict = None) -> requests.models.Response:
+    def _api_call(
+        self, action: str, url_addition: str, payload: dict = None
+    ) -> requests.models.Response:
         """Main method to make requests from Focus
 
         This method can be called by all methods available in WildCATApi
@@ -355,23 +365,15 @@ class WildCATApi(object):
 
         """
         url = FOCUS_BASE_URL + url_addition
-        request_trans = {
-            "post": self.session.post,
-            "get": self.session.get
-        }
-        extra_args = {
-            "headers": {'Content-type': 'application/json'}
-        }
+        request_trans = {"post": self.session.post, "get": self.session.get}
+        extra_args = {"headers": {"Content-type": "application/json"}}
         if payload:
             extra_args["json"] = payload
 
-        err_msg = f'action must be in {ALLOWED_REQUEST_TYPES}, but is {action}'
+        err_msg = f"action must be in {ALLOWED_REQUEST_TYPES}, but is {action}"
         assert action in ALLOWED_REQUEST_TYPES, err_msg
 
-        req = request_trans[action](
-            url,
-            **extra_args
-        )
+        req = request_trans[action](url, **extra_args)
         # add extra status codes
         if req.status_code == 200:
             # successful request
@@ -381,11 +383,12 @@ class WildCATApi(object):
         elif req.status_code == 404:
             raise TypeError(f"Unknown url {url}")
         elif req.status_code == 405:
-            raise TypeError(
-                f"Request type {action} not allowed for url {url}.")
+            raise TypeError(f"Request type {action} not allowed for url {url}.")
         else:
-            raise TypeError(f"Unknown error {str(req.status_code)}, "
-                            f"request returned {req.json()}")
+            raise TypeError(
+                f"Unknown error {str(req.status_code)}, "
+                f"request returned {req.json()}"
+            )
 
         return req
 
@@ -397,13 +400,13 @@ class WildCATApi(object):
         self.session.close()
 
     def _iterate_api(
-            self,
-            groups,
-            extractor_name: str,
-            # TODO: why set page_length here instead of make_query?
-            #  what is impact? how does it differ between methods?
-            page_length: int = 10,
-            **kwargs
+        self,
+        groups,
+        extractor_name: str,
+        # TODO: why set page_length here instead of make_query?
+        #  what is impact? how does it differ between methods?
+        page_length: int = 10,
+        **kwargs,
     ) -> pd.DataFrame:
         """Make iterative calls to Focus API to collect requested data
 
@@ -414,22 +417,42 @@ class WildCATApi(object):
         """
         output_data = []
         extractor = DataExtractor(extractor_name)
-        continue_request = True
-        page_nbr = 0  # TODO: check why in make_query, page_nbr is set to 1.
-        while continue_request:
-            query = make_query(groups=groups,
-                               page_length=page_length,
-                               page_nbr=page_nbr,
-                               **kwargs)
-            req = self._api_call("post", "search/all/results", query)
-            nbr_pages = math.ceil(req.json()["total"] / page_length)
-            data = extractor.extract_data(req.json())
-            output_data.extend(data)
 
-            if nbr_pages == 0 or nbr_pages == page_nbr:
-                continue_request = False
-            else:
-                page_nbr += 1
+        # first, determine number of available records.
+        query = make_query(groups=groups, page_length=page_length, page_nbr=0, **kwargs)
+        req = self._api_call("post", "search/all/results", query)
+        nbr_pages = math.ceil(req.json()["total"] / page_length)
+        nbr_pages_decile = math.ceil(nbr_pages / 10)
+        logger.info(
+            f"Group '{groups}' contains {req.json()['total']} records"
+            f" for data type '{extractor_name}'."
+        )
+
+        # second, verify extractor definition is correct for this particular
+        # group by using the first record in the query results.
+        if req.json()["total"] > 0:
+            # content of the first record in query results
+            record_content = req.json()["results"][0]["extracted"]["content"]
+            ext_clean_o = align_extractor(extractor.ext_clean, record_content)
+            extractor.ext_clean = ext_clean_o
+
+            # extract the data
+            logger.info("Started reading available records.")
+            for i_page in range(nbr_pages):
+                if np.mod(i_page, nbr_pages_decile) == 0:
+                    logger.debug(f"Reading page {i_page:>3d} out of {nbr_pages} pages.")
+                query = make_query(
+                    groups=groups, page_length=page_length, page_nbr=i_page, **kwargs
+                )
+                req = self._api_call("post", "search/all/results", query)
+                data = extractor.extract_data(req.json())
+                output_data.extend(data)
+            logger.info("Finished reading available records.")
+        else:
+            logger.warning(
+                f"No data available for '{extractor_name}',"
+                " returning empty dataframe."
+            )
 
         df = pd.DataFrame(output_data)
         return df

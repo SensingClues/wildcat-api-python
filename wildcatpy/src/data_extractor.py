@@ -1,18 +1,17 @@
 """Module to extract specific elements from raw Focus data"""
 
 import json
-import pkg_resources
 from typing import List, Union
-from wildcatpy.src import (
-    flatten_list,
-    recursive_get_from_dict,
-)
 
-data_path = pkg_resources.resource_filename('wildcatpy', 'extractors/')
+import pkg_resources
+
+from wildcatpy.src import flatten_list, recursive_get_from_dict
+
+data_path = pkg_resources.resource_filename("wildcatpy", "extractors/")
 
 DEFAULT_EXTRACTION_TYPES = [
-    'extract_values',
-    'explode_values',
+    "extract_values",
+    "explode_values",
 ]
 
 
@@ -41,14 +40,12 @@ class DataExtractor(object):
         self.extractor_name = extractor_name
         self.extractor_path = data_path + extractor_name + ".json"
         self.extractor_cfg = get_extractor_cfg(self.extractor_path)
-        self._ext_clean = process_extractor_cfg(self.extractor_cfg["extractor"])
+        self.ext_clean = process_extractor_cfg(self.extractor_cfg["extractor"])
         self._ext_cols_to_data = self.extractor_cfg["cols_to_data"]
 
     def extract_data(
-            self,
-            data: Union[dict, List[dict]],
-            nested_col_names: bool = False
-            ) -> List[dict]:
+        self, data: Union[dict, List[dict]], nested_col_names: bool = False
+    ) -> List[dict]:
         """Extract data using extractor configuration
 
         :param data: Dictionary containing data from Focus.
@@ -66,16 +63,17 @@ class DataExtractor(object):
             data = [data]
 
         # iterate through each row (which is a dictionary) in the extracted data
-        output_data = [extract_row(row, self._ext_clean, nested_col_names)
-                       for row in data]
+        output_data = [
+            extract_row(row, self.ext_clean, nested_col_names) for row in data
+        ]
 
         return flatten_list(output_data)
 
 
 def extract_row(
-        row: dict,
-        extractor: List[dict],
-        nested_col_names: bool,
+    row: dict,
+    extractor: List[dict],
+    nested_col_names: bool,
 ) -> List[dict]:
     """Extract requested data from a row in the full dataset
 
@@ -95,27 +93,42 @@ def extract_row(
         nested_names = "_".join([str(_) for _ in nested_keys])
 
         find_cols = val["columns"]
-        data = recursive_get_from_dict(row, nested_keys) \
-            if len(nested_keys) > 0 else row
+        data = (
+            recursive_get_from_dict(row, nested_keys) if len(nested_keys) > 0 else row
+        )
         if extraction_type == "extract_values":
             # simple extraction type, data can be extracted directly.
             extract_vals = {
                 **extract_vals,
-                **{"_".join([nested_names, col]) if nested_col_names else col:
-                   data[col] for col in find_cols if col in data.keys()}
+                **{
+                    "_".join([nested_names, col])
+                    if nested_col_names
+                    else col: data[col]
+                    for col in find_cols
+                    if col in data.keys()
+                },
             }
         elif extraction_type == "explode_values":
             # more complex extraction type, data consists of a list of dicts.
             # these dictionaries are exploded to get actual values.
-            explode_vals.extend([
-                {"_".join([nested_names, col]) if nested_col_names else col:
-                 record[col] for col in find_cols if col in record.keys()}
-                for record in data
-            ])
+            explode_vals.extend(
+                [
+                    {
+                        "_".join([nested_names, col])
+                        if nested_col_names
+                        else col: record[col]
+                        for col in find_cols
+                        if col in record.keys()
+                    }
+                    for record in data
+                ]
+            )
 
         else:
-            err_msg = (f'extraction_type should be one of '
-                       f'{DEFAULT_EXTRACTION_TYPES}, but is {extraction_type}.')
+            err_msg = (
+                f"extraction_type should be one of "
+                f"{DEFAULT_EXTRACTION_TYPES}, but is {extraction_type}."
+            )
             raise NotImplementedError(err_msg)
 
     # ensure explode_vals is non-empty to enable combination with extract_vals
@@ -139,12 +152,14 @@ def get_extractor_cfg(extractor_path: str) -> dict:
 
 def process_extractor_cfg(extractor_cfg: dict) -> List[dict]:
     """Process extractor configuration
-    
+
     :param extractor_cfg: Raw configuration for data to extract from Focus.
     :returns: Processed configuration of extraction, usable by extract_data().
     """
-    return [{"full_key": key, "columns": columns}
-            for key, columns in translate_extractor_cfg(extractor_cfg)]
+    return [
+        {"full_key": key, "columns": columns}
+        for key, columns in translate_extractor_cfg(extractor_cfg)
+    ]
 
 
 def translate_extractor_cfg(extractor: dict, full_key: list = None) -> tuple:

@@ -1,26 +1,47 @@
 """Helper functions for WildCATApi"""
 
 import copy
-from datetime import datetime
 import operator as python_ops
-import pandas as pd
-from typing import Any, Union
 import warnings
+from datetime import datetime
+from typing import Any, Union
 
-DEFAULT_DATA_TYPES = ['observation', 'track']
+import pandas as pd
+
+DEFAULT_DATA_TYPES = ["observation", "track"]
 DEFAULT_DT_FORMAT = {
-    'date_from': "%Y-%m-%d",
-    'date_until': "%Y-%m-%d",
-    'time_from': "%H:%M:%S%z",
-    'time_until': "%H:%M:%S%z",
+    "date_from": "%Y-%m-%d",
+    "date_until": "%Y-%m-%d",
+    "time_from": "%H:%M:%S%z",
+    "time_until": "%H:%M:%S%z",
 }
 
 COORD_PRECISION_LIMIT = 4
 
 
-def filter_dataframe(df: pd.DataFrame,
-                     filters: dict,
-                     return_col: str) -> Any:
+def align_extractor(
+    extractor: dict,
+    query_results: list,
+) -> dict:
+    """Align order in extractor with content of queried data
+
+    Order of elements in queried data may differ per Cluey group,
+    in which case an update of extractor.ext_clean is required.
+
+    :param extractor: dictionary with instructions to extract data.
+    :param query_results: list with initial query results, used to
+        verify the extractor-dict.
+    """
+    content_names = [list(e.keys())[0] for e in query_results]
+    content_order = {e: i for i, e in enumerate(content_names)}
+
+    for e in extractor:
+        e["full_key"][2] = content_order[e["full_key"][3]]
+
+    return extractor
+
+
+def filter_dataframe(df: pd.DataFrame, filters: dict, return_col: str) -> Any:
     """Filter a Pandas DataFrame and return values for a single column
 
     :param df: Data to filter on and extract values from.
@@ -31,66 +52,69 @@ def filter_dataframe(df: pd.DataFrame,
         values are left after filtering.
     """
 
-    assert return_col in df.columns, 'return_col should be in dataframe.'
-    assert all(col in df.columns for col in filters.keys()), \
-        'All filter columns should be in dataframe.'
-    assert all(isinstance(val, (str, list)) for val in filters.values()), \
-        'All filter values should be of type str or list'
+    if return_col not in df.columns:
+        raise ValueError("return_col should be in dataframe.")
+    if not all(col in df.columns for col in filters.keys()):
+        raise ValueError("All filter columns should be in dataframe.")
+    if not all(isinstance(val, (str, list)) for val in filters.values()):
+        raise ValueError("All filter values should be of type str or list.")
 
     for col, val in filters.items():
         if isinstance(val, str):
             val = [val]
         df = df.loc[df[col].isin(val)]
 
-    if df.shape[0] > 0:
-        return df[return_col].values[0]
+    series = df[return_col].dropna()
+    if series.shape[0] > 0:
+        return series.values[0]
     else:
         return None
 
 
 def get_children_for_id(df: pd.DataFrame, ontology_id: str) -> Any:
     """Get children in the hierarchy for a specific ontology id"""
-    return filter_dataframe(df, {'id': ontology_id}, return_col='children')
+    return filter_dataframe(df, {"id": ontology_id}, return_col="children")
 
 
 def get_children_for_label(df: pd.DataFrame, label: str) -> Any:
     """Get children in the hierarchy for a specific label"""
-    return filter_dataframe(df, {'label': label}, return_col='children')
+    return filter_dataframe(df, {"label": label}, return_col="children")
 
 
 def get_id_for_label(df: pd.DataFrame, label: str) -> str:
     """Get ontology id for a specific label in the hierarchy"""
-    return filter_dataframe(df, {'label': label}, return_col='id')
+    return filter_dataframe(df, {"label": label}, return_col="id")
 
 
 def get_label_for_id(df: pd.DataFrame, ontology_id: str) -> str:
     """Get ontology label for a specific ontology id in the hierarchy"""
-    return filter_dataframe(df, {'id': ontology_id}, return_col='label')
+    return filter_dataframe(df, {"id": ontology_id}, return_col="label")
 
 
 def get_parent_for_id(df: pd.DataFrame, ontology_id: str) -> Any:
     """Get parents in the hierarchy for a specific ontology id"""
-    return filter_dataframe(df, {'id': ontology_id}, return_col='parent')
+    return filter_dataframe(df, {"id": ontology_id}, return_col="parent")
 
 
 def get_parent_for_label(df: pd.DataFrame, label: str) -> Any:
     """Get parents in the hierarchy for a specific label"""
-    return filter_dataframe(df, {'label': label}, return_col='parent')
+    return filter_dataframe(df, {"label": label}, return_col="parent")
 
 
-def make_query(data_type: Union[str, list] = None,
-               groups: Union[str, list] = None,
-               operator: Union[str, list] = 'intersects',
-               query_text: str = None,
-               concepts: str = None,
-               coord: dict = None,
-               date_from: str = None,
-               date_until: str = None,
-               time_from: str = "00:00:00-00:00",
-               time_until: str = "23:59:59-00:00",
-               page_nbr: int = 1,
-               page_length: int = 0,
-               ) -> dict:
+def make_query(
+    data_type: Union[str, list] = None,
+    groups: Union[str, list] = None,
+    operator: Union[str, list] = "intersects",
+    query_text: str = None,
+    concepts: str = None,
+    coord: dict = None,
+    date_from: str = None,
+    date_until: str = None,
+    time_from: str = "00:00:00-00:00",
+    time_until: str = "23:59:59-00:00",
+    page_nbr: int = 1,  # TODO: check why page_nbr defaults to 1.
+    page_length: int = 0,
+) -> dict:
     """Build a query from user input arguments
 
     This function can be used by every method in WildcatAPI, since it
@@ -135,13 +159,12 @@ def make_query(data_type: Union[str, list] = None,
 
     :returns: Dictionary containing all elements of query as key-value pairs.
     """
-    assert isinstance(operator, (str, list)), 'operator should be str or list.'
-    if groups:
-        assert isinstance(groups, (str, list)), \
-            'groups should be str or list.'
-    if data_type:
-        assert isinstance(data_type, (str, list)), \
-            'data_type should be str or list.'
+    if not isinstance(operator, (str, list)):
+        raise ValueError("operator should be str or list.")
+    if groups and not isinstance(groups, (str, list)):
+        raise ValueError("groups should be str or list.")
+    if data_type and not isinstance(data_type, (str, list)):
+        raise ValueError("data_type should be str or list.")
 
     if not data_type:
         data_type = DEFAULT_DATA_TYPES
@@ -185,10 +208,11 @@ def make_query(data_type: Union[str, list] = None,
     return query
 
 
-def make_nested_dict(value: Any,
-                     all_keys: list,
-                     output_dict: dict = None,
-                     ) -> dict:
+def make_nested_dict(
+    value: Any,
+    all_keys: list,
+    output_dict: dict = None,
+) -> dict:
     """Build a nested dictionary
 
     If an existing dictionary is passed, this dictionary is updated with
@@ -212,12 +236,10 @@ def make_nested_dict(value: Any,
     key = keys.pop(0)
     if len(keys) > 0 and output_dict.get(key, False):
         # keys contains at least 1 more level and key already exists in dict
-        output_dict[key] = make_nested_dict(value, keys,
-                                            output_dict=output_dict[key])
+        output_dict[key] = make_nested_dict(value, keys, output_dict=output_dict[key])
     elif len(keys) > 0 and not output_dict.get(key, False):
         # keys contains at least 1 more level and key does not exist in dict yet
-        output_dict[key] = make_nested_dict(value, keys,
-                                            output_dict={})
+        output_dict[key] = make_nested_dict(value, keys, output_dict={})
     else:
         # the deepest level specified keys has been reached, finalize the dict.
         output_dict[key] = value
@@ -245,33 +267,39 @@ def check_coordinates(coord: dict) -> dict:
         "west": [-179.9999, python_ops.ge],
     }
 
-    err_msg = f"Coordinates are required for north, east, south and west, " \
-              f"but you only specified coordinates for {list(coord.keys())}"
-    assert all([c in coord.keys() for c in reqs.keys()]), err_msg
+    err_msg = (
+        "Coordinates are required for north, east, south and west, "
+        f"but you only specified coordinates for {list(coord.keys())}"
+    )
+    if not all([c in coord.keys() for c in reqs.keys()]):
+        raise ValueError(err_msg)
 
-    err_msg = f'All coordinates should be of a numeric type'
-    assert all([isinstance(v, (int, float)) for v in coord.values()]), err_msg
+    err_msg = "All coordinates should be of a numeric type"
+    if not all([isinstance(v, (int, float)) for v in coord.values()]):
+        raise ValueError(err_msg)
 
-    err_msg = 'Coordinate for north should be larger or equal to south'
-    assert coord['north'] >= coord['south'], err_msg
+    err_msg = "Coordinate for north should be larger or equal to south"
+    if not coord["north"] >= coord["south"]:
+        raise ValueError(err_msg)
 
-    err_msg = 'Coordinate for east should be larger than or equal to west'
-    assert coord['east'] >= coord['west'], err_msg
+    err_msg = "Coordinate for east should be larger than or equal to west"
+    if not coord["east"] >= coord["west"]:
+        raise ValueError(err_msg)
 
     for c, rule in reqs.items():
         limit, ops = rule
         v = coord[c]
-        assert ops(v, limit), f'"{c}"-coordinate is {v} ' \
-                              f'and exceeds limit {limit}'
+        if not ops(v, limit):
+            raise ValueError(f"'{c}'-coordinate is {v} " f"and exceeds limit {limit}")
 
     for c, v in coord.items():
-        n_dec = str(v)[::-1].find('.')
+        n_dec = str(v)[::-1].find(".")
         if n_dec > COORD_PRECISION_LIMIT:
             warn_msg = (
-                f'The precision of coordinates used when querying Focus is '
-                f'limited to {COORD_PRECISION_LIMIT} decimals, but you '
+                f"The precision of coordinates used when querying Focus is "
+                f"limited to {COORD_PRECISION_LIMIT} decimals, but you "
                 f'specified {n_dec} for "{c}" ({v}). Note that digits beyond '
-                f'{COORD_PRECISION_LIMIT} will be ignored in the query.'
+                f"{COORD_PRECISION_LIMIT} will be ignored in the query."
             )
             warnings.warn(warn_msg)
 
@@ -320,10 +348,10 @@ def validate_datetime(dt_val: str, dt_name: str, dt_format: str):
     try:
         datetime.strptime(dt_val, dt_format)
     except ValueError:
-        raise ValueError(f'{dt_name} should be of format {dt_format}, '
-                         f'but is {dt_val}.')
+        raise ValueError(
+            f"{dt_name} should be of format {dt_format}, " f"but is {dt_val}."
+        )
     except TypeError:
-        raise TypeError(f'{dt_name} should be of type "str", '
-                        f'but is {type(dt_val)}.')
-
-
+        raise TypeError(
+            f'{dt_name} should be of type "str", ' f"but is {type(dt_val)}."
+        )
