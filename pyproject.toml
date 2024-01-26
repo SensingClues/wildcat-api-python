@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wildcatpy"
+version = "0.2.0"
+authors = [
+    {name = "sensing_clues", email = "sensingclues@typemail.com"},
+]
+description = "WildCAT API to extract data from SensingClues Cluey-app"
+readme = "readme.md"
+requires-python = ">=3.9"
+keywords = ["wildlife", "SensingClues", "Cluey"]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dynamic = ["dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+optional-dependencies.dev = { file = ["requirements_dev.txt"] }
+
+[tool.setuptools.package-data]
+wildcatpy = ["extractors/*"]
+
+[tool.setuptools.packages.find]
+include = ["wildcatpy*"]
+exclude = ["docs/*", "tests/*", "notebooks/*"]

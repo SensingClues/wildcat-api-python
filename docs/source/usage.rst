@@ -8,8 +8,8 @@ Methods which are currently implemented are:
 
 - ``login`` and ``logout``: Connect to the database.
 - ``get_groups``: Obtain overview of groups you have access to.
-- ``observation_extractor``: Extract observations.
-- ``track_extractor``: Extract track data.
+- ``get_observations``: Extract observations.
+- ``get_tracks``: Extract track data.
 - ``add_geojson_to_track``: Add geospatial information to track data.
 - ``get_all_layers``: Obtain overview of all layers you have access to.
 - ``layer_feature_extractor``: Extract detailed information on a layer.

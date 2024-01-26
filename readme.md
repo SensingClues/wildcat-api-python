@@ -1,4 +1,4 @@
-# WildCAT API to extract data from SensingClues' Cluey-app 
+# WildCAT API to extract data from SensingClues Cluey-app 
 
 ## Introduction
 
@@ -6,6 +6,9 @@
 data logged in the Cluey-app and data available in Focus. This includes data such as
 wildlife observations and tracks, custom map layers, and the wildlife ontology used by 
 SensingClues.
+
+See the installation and usage instructions below, and the 
+[API-documentation](https://wildcat-api-python.readthedocs.io/en/latest/#) for more details.
 
 **Note:** you need credentials for the [Cluey](https://sensingclues.org/cluey)-app to 
 connect to the database.
@@ -61,8 +64,8 @@ to check the notebook `notebooks/demo_notebook.py.`
 Methods which are currently implemented are:
 - `login` and `logout`: Connect to the database.
 - `get_groups`: Obtain overview of groups you have access to.
-- `observation_extractor`: Extract observations. 
-- `track_extractor`: Extract track data.
+- `get_observations`: Extract observations. 
+- `get_tracks`: Extract track data.
 - `add_geojson_to_track`: Add geospatial information to track data.
 - `get_all_layers`: Obtain overview of all layers you have access to.
 - `layer_feature_extractor`: Extract detailed information on a layer.
