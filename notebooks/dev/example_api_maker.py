@@ -25,11 +25,9 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
-# +
 from wildcatpy.api_calls import WildCATApi
 from wildcatpy.src import DataExtractor
 
-# -
 
 # ### Login details
 #

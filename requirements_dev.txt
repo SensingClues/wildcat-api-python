@@ -1,6 +1,6 @@
 autopep8
 black
-bumpversion
+bump2version
 flake8
 jupyterlab
 jupytext
