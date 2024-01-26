@@ -5,5 +5,3 @@ numpy
 pandas
 python-dotenv
 requests
-sphinx
-sphinx-rtd-theme
