@@ -5,7 +5,8 @@ from typing import List, Union
 
 import pkg_resources
 
-from wildcatpy.src import flatten_list, recursive_get_from_dict
+from wildcatpy.src.data_cleaner import flatten_list
+from wildcatpy.src.helper_functions import recursive_get_from_dict
 
 data_path = pkg_resources.resource_filename("wildcatpy", "extractors/")
 
